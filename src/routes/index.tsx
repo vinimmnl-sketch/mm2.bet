@@ -56,6 +56,16 @@ function Index() {
     }
   }, []);
 
+  // Once signed in, the login screen is never shown again.
+  useEffect(() => {
+    if (member) {
+      setAuthError(null);
+      setView("home");
+    }
+  }, [member]);
+
+  const showAuth = view === "signup" && !member;
+
   const displayName = member?.discordUsername ?? member?.robloxUsername ?? null;
   const avatar = member?.discordAvatar ?? member?.robloxAvatar ?? null;
 
