@@ -14,7 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      members: {
+        Row: {
+          balance: number
+          created_at: string
+          discord_avatar: string | null
+          discord_id: string | null
+          discord_username: string | null
+          id: string
+          roblox_avatar: string | null
+          roblox_id: string | null
+          roblox_username: string | null
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          discord_avatar?: string | null
+          discord_id?: string | null
+          discord_username?: string | null
+          id?: string
+          roblox_avatar?: string | null
+          roblox_id?: string | null
+          roblox_username?: string | null
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          discord_avatar?: string | null
+          discord_id?: string | null
+          discord_username?: string | null
+          id?: string
+          roblox_avatar?: string | null
+          roblox_id?: string | null
+          roblox_username?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
