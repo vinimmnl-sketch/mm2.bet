@@ -56,6 +56,16 @@ function Index() {
     }
   }, []);
 
+  // Once signed in, the login screen is never shown again.
+  useEffect(() => {
+    if (member) {
+      setAuthError(null);
+      setView("home");
+    }
+  }, [member]);
+
+  const showAuth = view === "signup" && !member;
+
   const displayName = member?.discordUsername ?? member?.robloxUsername ?? null;
   const avatar = member?.discordAvatar ?? member?.robloxAvatar ?? null;
 
@@ -95,7 +105,7 @@ function Index() {
         </div>
       </div>
 
-      {view === "home" ? (
+      {!showAuth ? (
         <div className="view-content">
           <div className="hero-banner">
             <img
@@ -108,9 +118,11 @@ function Index() {
               <h1>LIVE MM2 PLATFORM</h1>
               <p>Verified accounts only — Discord OAuth and Roblox ownership checks</p>
               <div>
-                <button className="btn btn-primary" onClick={() => setView("signup")}>
-                  {member ? "Manage Account" : "Connect Account"}
-                </button>
+                {!member ? (
+                  <button className="btn btn-primary" onClick={() => setView("signup")}>
+                    Connect Account
+                  </button>
+                ) : null}
               </div>
             </div>
           </div>
@@ -153,7 +165,7 @@ function Index() {
 
       <div className="bottom-nav">
         <button
-          className={`nav-item${view === "home" ? " active" : ""}`}
+          className={`nav-item${!showAuth ? " active" : ""}`}
           onClick={() => setView("home")}
         >
           <svg viewBox="0 0 24 24">
@@ -162,7 +174,7 @@ function Index() {
           Home
         </button>
         <button
-          className={`nav-item${view === "signup" ? " active" : ""}`}
+          className={`nav-item${showAuth ? " active" : ""}`}
           onClick={() => setView("signup")}
         >
           <svg viewBox="0 0 24 24">
