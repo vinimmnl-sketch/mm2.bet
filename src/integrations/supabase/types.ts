@@ -14,6 +14,144 @@ export type Database = {
   }
   public: {
     Tables: {
+      coinflips: {
+        Row: {
+          amount: number
+          created_at: string
+          creator_id: string
+          creator_side: string
+          id: string
+          joiner_id: string | null
+          result: string | null
+          status: string
+          updated_at: string
+          winner_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          creator_id: string
+          creator_side: string
+          id?: string
+          joiner_id?: string | null
+          result?: string | null
+          status?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          creator_id?: string
+          creator_side?: string
+          id?: string
+          joiner_id?: string | null
+          result?: string | null
+          status?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coinflips_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coinflips_joiner_id_fkey"
+            columns: ["joiner_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coinflips_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jackpot_entries: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          member_id: string
+          round_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          member_id: string
+          round_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          member_id?: string
+          round_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jackpot_entries_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jackpot_entries_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "jackpot_rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jackpot_rounds: {
+        Row: {
+          created_at: string
+          ends_at: string | null
+          id: string
+          status: string
+          total: number
+          updated_at: string
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          status?: string
+          total?: number
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          status?: string
+          total?: number
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jackpot_rounds_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       members: {
         Row: {
           balance: number
@@ -53,12 +191,55 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          kind: string
+          member_id: string
+          note: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          kind: string
+          member_id: string
+          note?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          member_id?: string
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      adjust_balance: {
+        Args: {
+          _delta: number
+          _kind: string
+          _member_id: string
+          _note: string
+        }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
