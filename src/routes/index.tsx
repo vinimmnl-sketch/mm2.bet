@@ -9,6 +9,15 @@ import {
   startRobloxChallenge,
   verifyRobloxChallenge,
 } from "@/lib/auth.functions";
+import {
+  cancelCoinflip,
+  createCoinflip,
+  getJackpot,
+  joinCoinflip,
+  joinJackpot,
+  listCoinflips,
+  listTransactions,
+} from "@/lib/games.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -17,12 +26,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Link your Discord or verify Roblox ownership to access the MM2Bet live platform. Real OAuth, real Roblox bio verification, no demo data.",
+          "Link your Discord or verify Roblox ownership to access the MM2Bet live platform. Coinflip, jackpot and a real wallet — no demo data.",
       },
       { property: "og:title", content: "MM2Bet — Live MM2 Platform" },
       {
         property: "og:description",
-        content: "Connect with Discord or verify your Roblox profile to join the MM2Bet platform.",
+        content: "Coinflip, jackpot and wallet for verified Discord and Roblox accounts.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -31,7 +40,7 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type View = "home" | "signup";
+type View = "home" | "games" | "wallet" | "signup";
 
 function Index() {
   const [view, setView] = useState<View>("home");
@@ -56,11 +65,10 @@ function Index() {
     }
   }, []);
 
-  // Once signed in, the login screen is never shown again.
   useEffect(() => {
     if (member) {
       setAuthError(null);
-      setView("home");
+      setView((current) => (current === "signup" ? "home" : current));
     }
   }, [member]);
 
@@ -68,6 +76,14 @@ function Index() {
 
   const displayName = member?.discordUsername ?? member?.robloxUsername ?? null;
   const avatar = member?.discordAvatar ?? member?.robloxAvatar ?? null;
+
+  function requireAuth(next: View) {
+    if (!member) {
+      setView("signup");
+      return;
+    }
+    setView(next);
+  }
 
   return (
     <div className="mm2">
@@ -90,7 +106,8 @@ function Index() {
               className="user-profile-pill"
               onClick={async () => {
                 await doSignOut();
-                await queryClient.invalidateQueries({ queryKey: ["member"] });
+                await queryClient.invalidateQueries();
+                setView("home");
               }}
               title="Sign out"
             >
@@ -105,7 +122,21 @@ function Index() {
         </div>
       </div>
 
-      {!showAuth ? (
+      {showAuth ? (
+        <div className="view-content">
+          <AuthCard
+            authError={authError}
+            onAuthenticated={async () => {
+              await queryClient.invalidateQueries();
+              setView("home");
+            }}
+          />
+        </div>
+      ) : view === "games" ? (
+        <GamesView memberId={member?.id ?? null} />
+      ) : view === "wallet" ? (
+        <WalletView balance={member?.balance ?? 0} />
+      ) : (
         <div className="view-content">
           <div className="hero-banner">
             <img
@@ -122,9 +153,31 @@ function Index() {
                   <button className="btn btn-primary" onClick={() => setView("signup")}>
                     Connect Account
                   </button>
-                ) : null}
+                ) : (
+                  <button className="btn btn-primary" onClick={() => setView("games")}>
+                    Play Now
+                  </button>
+                )}
               </div>
             </div>
+          </div>
+
+          <div className="section-header">
+            <div className="section-title">Games</div>
+          </div>
+          <div className="game-grid">
+            <button className="game-tile" onClick={() => requireAuth("games")}>
+              <span className="game-emoji">🪙</span>
+              Coinflip
+            </button>
+            <button className="game-tile" onClick={() => requireAuth("games")}>
+              <span className="game-emoji">🎰</span>
+              Jackpot
+            </button>
+            <button className="game-tile" onClick={() => requireAuth("wallet")}>
+              <span className="game-emoji">👛</span>
+              Wallet
+            </button>
           </div>
 
           <div className="section-header">
@@ -151,38 +204,266 @@ function Index() {
             )}
           </div>
         </div>
-      ) : (
-        <div className="view-content">
-          <AuthCard
-            authError={authError}
-            onAuthenticated={async () => {
-              await queryClient.invalidateQueries({ queryKey: ["member"] });
-              setView("home");
-            }}
-          />
-        </div>
       )}
 
       <div className="bottom-nav">
+        <NavButton active={view === "home" && !showAuth} label="Home" onClick={() => setView("home")}>
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        </NavButton>
+        <NavButton active={view === "games"} label="Games" onClick={() => requireAuth("games")}>
+          <rect x="2" y="7" width="20" height="12" rx="4" />
+          <path d="M7 11v4M5 13h4M16 12h.01M18.5 14.5h.01" />
+        </NavButton>
+        <NavButton active={view === "wallet"} label="Wallet" onClick={() => requireAuth("wallet")}>
+          <rect x="3" y="6" width="18" height="13" rx="3" />
+          <path d="M16 12h3" />
+        </NavButton>
+        <NavButton active={showAuth} label="Account" onClick={() => setView(member ? "home" : "signup")}>
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 21c0-4 3.6-6 8-6s8 2 8 6" />
+        </NavButton>
+      </div>
+    </div>
+  );
+}
+
+function NavButton({
+  active,
+  label,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button className={`nav-item${active ? " active" : ""}`} onClick={onClick}>
+      <svg viewBox="0 0 24 24">{children}</svg>
+      {label}
+    </button>
+  );
+}
+
+function GamesView({ memberId }: { memberId: string | null }) {
+  const queryClient = useQueryClient();
+  const fetchFlips = useServerFn(listCoinflips);
+  const fetchJackpotState = useServerFn(getJackpot);
+  const create = useServerFn(createCoinflip);
+  const join = useServerFn(joinCoinflip);
+  const cancel = useServerFn(cancelCoinflip);
+  const enter = useServerFn(joinJackpot);
+
+  const [amount, setAmount] = useState("10");
+  const [side, setSide] = useState<"heads" | "tails">("heads");
+  const [jackpotAmount, setJackpotAmount] = useState("10");
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const { data: flips = [] } = useQuery({
+    queryKey: ["coinflips"],
+    queryFn: () => fetchFlips(),
+    refetchInterval: 5000,
+  });
+
+  const { data: jackpot } = useQuery({
+    queryKey: ["jackpot"],
+    queryFn: () => fetchJackpotState(),
+    refetchInterval: 5000,
+  });
+
+  async function run(fn: () => Promise<{ ok: boolean; error?: string }>, success: string) {
+    setError(null);
+    setNotice(null);
+    setBusy(true);
+    try {
+      const result = await fn();
+      if (!result.ok) setError(result.error ?? "Something went wrong.");
+      else setNotice(success);
+      await queryClient.invalidateQueries();
+    } catch {
+      setError("Something went wrong. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const endsIn = jackpot?.endsAt
+    ? Math.max(0, Math.round((new Date(jackpot.endsAt).getTime() - Date.now()) / 1000))
+    : null;
+
+  return (
+    <div className="view-content">
+      {error ? <div className="auth-error">{error}</div> : null}
+      {notice ? <div className="auth-success">{notice}</div> : null}
+
+      <div className="section-header">
+        <div className="section-title">Coinflip</div>
+      </div>
+      <div className="live-feed-card">
+        <div className="stake-row">
+          <input
+            className="auth-input"
+            type="number"
+            min="1"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="Stake"
+          />
+          <div className="side-toggle">
+            <button
+              className={`side-btn${side === "heads" ? " active" : ""}`}
+              onClick={() => setSide("heads")}
+            >
+              Heads
+            </button>
+            <button
+              className={`side-btn${side === "tails" ? " active" : ""}`}
+              onClick={() => setSide("tails")}
+            >
+              Tails
+            </button>
+          </div>
+        </div>
         <button
-          className={`nav-item${!showAuth ? " active" : ""}`}
-          onClick={() => setView("home")}
+          className="btn-auth-submit"
+          disabled={busy || !(Number(amount) > 0)}
+          onClick={() =>
+            void run(() => create({ data: { amount: Number(amount), side } }), "Flip created.")
+          }
         >
-          <svg viewBox="0 0 24 24">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-          </svg>
-          Home
+          {busy ? "Working…" : "Create Flip"}
         </button>
-        <button
-          className={`nav-item${showAuth ? " active" : ""}`}
-          onClick={() => setView("signup")}
-        >
-          <svg viewBox="0 0 24 24">
-            <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4" />
-            <path d="M4 6v12a2 2 0 0 0 2 2h14v-4" />
-          </svg>
-          Account
-        </button>
+      </div>
+
+      <div className="section-header">
+        <div className="section-title">Open & Recent Flips</div>
+      </div>
+      <div className="live-feed-card">
+        {flips.length === 0 ? (
+          <div className="feed-empty">No flips yet — create the first one.</div>
+        ) : (
+          flips.map((flip) => (
+            <div key={flip.id} className="feed-item">
+              <span className="feed-user">{flip.creator.name}</span>
+              <span className="flip-meta">
+                {flip.amount.toFixed(2)} · {flip.creatorSide}
+                {flip.status === "settled"
+                  ? ` · ${flip.result} → ${flip.winnerId === flip.creator.id ? flip.creator.name : (flip.joiner?.name ?? "joiner")}`
+                  : flip.status === "cancelled"
+                    ? " · cancelled"
+                    : ""}
+              </span>
+              {flip.status === "open" ? (
+                flip.creator.id === memberId ? (
+                  <button
+                    className="mini-btn ghost"
+                    disabled={busy}
+                    onClick={() => void run(() => cancel({ data: { id: flip.id } }), "Flip cancelled.")}
+                  >
+                    Cancel
+                  </button>
+                ) : (
+                  <button
+                    className="mini-btn"
+                    disabled={busy}
+                    onClick={() => void run(() => join({ data: { id: flip.id } }), "Flip settled.")}
+                  >
+                    Join
+                  </button>
+                )
+              ) : null}
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="section-header">
+        <div className="section-title">Jackpot</div>
+      </div>
+      <div className="live-feed-card">
+        <div className="jackpot-total">{(jackpot?.total ?? 0).toFixed(2)}</div>
+        <div className="jackpot-sub">
+          {endsIn !== null ? `Drawing in ${endsIn}s` : "Waiting for the first entry"}
+        </div>
+        <div className="stake-row">
+          <input
+            className="auth-input"
+            type="number"
+            min="1"
+            value={jackpotAmount}
+            onChange={(e) => setJackpotAmount(e.target.value)}
+            placeholder="Entry amount"
+          />
+          <button
+            className="mini-btn"
+            disabled={busy || !(Number(jackpotAmount) > 0)}
+            onClick={() =>
+              void run(() => enter({ data: { amount: Number(jackpotAmount) } }), "Entry added.")
+            }
+          >
+            Join
+          </button>
+        </div>
+        {(jackpot?.entries ?? []).map((entry) => (
+          <div key={entry.id} className="feed-item">
+            <span className="feed-user">{entry.name}</span>
+            <span>
+              {entry.amount.toFixed(2)} ·{" "}
+              {jackpot && jackpot.total > 0
+                ? `${Math.round((entry.amount / jackpot.total) * 100)}%`
+                : "0%"}
+            </span>
+          </div>
+        ))}
+        {jackpot?.lastWinner ? (
+          <div className="feed-empty">
+            Last round: {jackpot.lastWinner.name} won {jackpot.lastWinner.total.toFixed(2)}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function WalletView({ balance }: { balance: number }) {
+  const fetchTx = useServerFn(listTransactions);
+  const { data: transactions = [] } = useQuery({
+    queryKey: ["transactions"],
+    queryFn: () => fetchTx(),
+    refetchInterval: 10000,
+  });
+
+  return (
+    <div className="view-content">
+      <div className="section-header">
+        <div className="section-title">Wallet</div>
+      </div>
+      <div className="live-feed-card">
+        <div className="jackpot-total">{balance.toFixed(2)}</div>
+        <div className="jackpot-sub">Current balance</div>
+      </div>
+
+      <div className="section-header">
+        <div className="section-title">History</div>
+      </div>
+      <div className="live-feed-card">
+        {transactions.length === 0 ? (
+          <div className="feed-empty">No transactions yet.</div>
+        ) : (
+          transactions.map((tx) => (
+            <div key={tx.id} className="feed-item">
+              <span className="feed-user">{tx.kind.replace(/_/g, " ")}</span>
+              <span className="flip-meta">{new Date(tx.createdAt).toLocaleString()}</span>
+              <span className={tx.amount >= 0 ? "amount-up" : "amount-down"}>
+                {tx.amount >= 0 ? "+" : ""}
+                {tx.amount.toFixed(2)}
+              </span>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
