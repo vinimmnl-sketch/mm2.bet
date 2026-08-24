@@ -16,11 +16,21 @@ export type CoinflipRow = {
 
 export type JackpotState = {
   roundId: string;
+  roundNumber: number;
+  playerCount: number;
   total: number;
   endsAt: string | null;
   status: string;
   entries: { id: string; amount: number; name: string; avatar: string | null; memberId: string }[];
   lastWinner: { name: string; total: number } | null;
+};
+
+export type JackpotHistoryRow = {
+  id: string;
+  roundNumber: number;
+  total: number;
+  winner: string;
+  settledAt: string;
 };
 
 export type TransactionRow = {
@@ -71,6 +81,13 @@ export const getJackpot = createServerFn({ method: "GET" }).handler(
   async (): Promise<JackpotState> => {
     const { fetchJackpot } = await import("./games.server");
     return fetchJackpot();
+  },
+);
+
+export const listJackpotHistory = createServerFn({ method: "GET" }).handler(
+  async (): Promise<JackpotHistoryRow[]> => {
+    const { fetchJackpotHistory } = await import("./games.server");
+    return fetchJackpotHistory();
   },
 );
 
