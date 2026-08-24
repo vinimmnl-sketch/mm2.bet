@@ -1,8 +1,9 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { memberFromCookieHeader, type Member } from "./session.server";
-import type { CoinflipRow, JackpotState, TransactionRow } from "./games.functions";
+import type { CoinflipRow, JackpotHistoryRow, JackpotState, TransactionRow } from "./games.functions";
 
 const JACKPOT_WINDOW_MS = 60_000;
+const MIN_PLAYERS = 2;
 
 export async function requireMember(cookieHeader: string | null): Promise<Member | null> {
   return memberFromCookieHeader(cookieHeader);
@@ -154,19 +155,28 @@ export async function cancelFlip(memberId: string, flipId: string) {
   return { ok: true as const };
 }
 
+async function roundNumberFor(createdAt: string) {
+  const { count } = await supabaseAdmin
+    .from("jackpot_rounds")
+    .select("id", { count: "exact", head: true })
+    .lte("created_at", createdAt);
+  return count ?? 1;
+}
+
 async function openRound() {
   const { data: existing } = await supabaseAdmin
     .from("jackpot_rounds")
-    .select("id, total, ends_at, status")
+    .select("id, total, ends_at, status, created_at")
     .eq("status", "open")
     .order("created_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
   if (existing) return existing;
 
   const { data: created } = await supabaseAdmin
     .from("jackpot_rounds")
     .insert({ status: "open", total: 0 })
-    .select("id, total, ends_at, status")
+    .select("id, total, ends_at, status, created_at")
     .single();
   return created!;
 }
@@ -177,6 +187,8 @@ async function settleIfDue() {
     .select("id, total, ends_at, status")
     .eq("status", "open")
     .not("ends_at", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
   if (!round || !round.ends_at) return;
   if (new Date(round.ends_at).getTime() > Date.now()) return;
@@ -186,6 +198,17 @@ async function settleIfDue() {
     .select("member_id, amount")
     .eq("round_id", round.id);
   if (!entries?.length) return;
+
+  const uniquePlayers = new Set(entries.map((e) => e.member_id)).size;
+  if (uniquePlayers < MIN_PLAYERS) {
+    // Not enough players yet: pause the countdown until another player joins.
+    await supabaseAdmin
+      .from("jackpot_rounds")
+      .update({ ends_at: null, updated_at: new Date().toISOString() })
+      .eq("id", round.id)
+      .eq("status", "open");
+    return;
+  }
 
   const total = entries.reduce((sum, e) => sum + Number(e.amount), 0);
   let ticket = Math.random() * total;
@@ -235,8 +258,13 @@ export async function fetchJackpot(): Promise<JackpotState> {
 
   const lastWinner = last?.winner ? nameOf(last.winner as any) : null;
 
+  const playerCount = new Set((entries ?? []).map((e: any) => e.member_id)).size;
+  const roundNumber = await roundNumberFor(round.created_at);
+
   return {
     roundId: round.id,
+    roundNumber,
+    playerCount,
     total: Number(round.total ?? 0),
     endsAt: round.ends_at,
     status: round.status,
@@ -269,11 +297,22 @@ export async function enterJackpot(memberId: string, _balance: number, amount: n
     amount,
   });
 
+  const { data: allEntries } = await supabaseAdmin
+    .from("jackpot_entries")
+    .select("member_id, amount")
+    .eq("round_id", round.id);
+
+  const uniquePlayers = new Set((allEntries ?? []).map((e) => e.member_id)).size;
+  const total = (allEntries ?? []).reduce((sum, e) => sum + Number(e.amount), 0);
+
   await supabaseAdmin
     .from("jackpot_rounds")
     .update({
-      total: Number(round.total ?? 0) + amount,
-      ends_at: round.ends_at ?? new Date(Date.now() + JACKPOT_WINDOW_MS).toISOString(),
+      total,
+      ends_at:
+        uniquePlayers >= MIN_PLAYERS
+          ? (round.ends_at ?? new Date(Date.now() + JACKPOT_WINDOW_MS).toISOString())
+          : null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", round.id);
@@ -296,4 +335,26 @@ export async function fetchTransactions(memberId: string): Promise<TransactionRo
     note: t.note,
     createdAt: t.created_at,
   }));
+}
+
+export async function fetchJackpotHistory(): Promise<JackpotHistoryRow[]> {
+  const { data } = await supabaseAdmin
+    .from("jackpot_rounds")
+    .select(`id, total, status, created_at, updated_at, winner:members!jackpot_rounds_winner_id_fkey(${MEMBER_COLS})`)
+    .order("created_at", { ascending: true })
+    .limit(200);
+
+  return (data ?? [])
+    .map((row: any, index: number) => ({
+      id: row.id,
+      roundNumber: index + 1,
+      total: Number(row.total ?? 0),
+      winner: nameOf(row.winner)?.name ?? "—",
+      settledAt: row.updated_at,
+      status: row.status,
+    }))
+    .filter((row) => row.status === "settled")
+    .reverse()
+    .slice(0, 20)
+    .map(({ status: _status, ...row }) => row);
 }
