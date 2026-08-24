@@ -143,3 +143,40 @@
     color: var(--color-foreground);
   }
 }
+
+/* ===== MM2Bet live-data additions (auth + real game rows) ===== */
+.auth-card { background-color:#151821; border:1px solid #232838; border-radius:16px; padding:30px 20px; max-width:400px; margin:20px auto; text-align:center; }
+.auth-card h2 { font-size:22px; font-weight:800; margin-bottom:6px; }
+.auth-card > p { font-size:13px; color:#9ca3af; margin-bottom:24px; }
+.auth-input { width:100%; background-color:#0b0c10; border:1px solid #282e42; border-radius:10px; padding:12px 14px; color:#fff; font-size:14px; margin-bottom:14px; outline:none; }
+.auth-input:focus { border-color:#f39c12; }
+.btn-auth-submit { width:100%; background-color:#f39c12; border:none; color:#111; font-weight:700; font-size:14px; padding:12px; border-radius:10px; cursor:pointer; }
+.btn-auth-submit:disabled, .btn-discord-login:disabled { opacity:.6; cursor:not-allowed; }
+.btn-discord-login { width:100%; background-color:#5865F2; color:#fff; font-weight:700; font-size:14px; padding:14px; border-radius:12px; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; text-decoration:none; margin-bottom:16px; }
+.btn-discord-login svg { width:20px; height:20px; fill:#fff; }
+.auth-divider { display:flex; align-items:center; text-align:center; color:#6b7280; font-size:12px; margin:16px 0; }
+.auth-divider::before, .auth-divider::after { content:''; flex:1; border-bottom:1px solid #232838; }
+.auth-divider::before { margin-right:10px; }
+.auth-divider::after { margin-left:10px; }
+.verification-code-box { background-color:#0b0c10; border:1px dashed #f39c12; padding:12px; border-radius:8px; margin-bottom:14px; font-size:14px; font-weight:bold; color:#f39c12; letter-spacing:1px; word-break:break-all; }
+.auth-hint { font-size:12px; color:#9ca3af; margin-bottom:8px; text-align:left; }
+.auth-error { font-size:12px; color:#ef4444; margin-bottom:12px; }
+.auth-success { font-size:12px; color:#2ecc71; margin-bottom:12px; }
+.btn-ghost { background:none; border:1px solid #282e42; color:#9ca3af; border-radius:10px; padding:10px; width:100%; margin-top:10px; cursor:pointer; font-size:13px; }
+.user-profile-pill { display:flex; align-items:center; gap:8px; background-color:#161922; border:1px solid #222634; padding:4px 10px 4px 4px; border-radius:20px; cursor:pointer; }
+.user-avatar-img { width:28px; height:28px; border-radius:50%; object-fit:cover; border:1px solid #f39c12; }
+.user-name-text { font-size:12px; font-weight:700; max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.stake-row { display:flex; gap:10px; align-items:flex-start; margin-bottom:10px; }
+.stake-row .auth-input { margin-bottom:0; }
+.side-toggle { display:flex; gap:6px; }
+.side-btn { background:#0b0c10; border:1px solid #282e42; color:#9ca3af; border-radius:10px; padding:12px 14px; font-size:13px; font-weight:600; cursor:pointer; }
+.side-btn.active { background:#f39c12; color:#111; border-color:#f39c12; }
+.mini-btn { background:#f39c12; border:none; color:#111; font-weight:700; font-size:12px; padding:8px 14px; border-radius:8px; cursor:pointer; }
+.mini-btn.ghost { background:transparent; border:1px solid #282e42; color:#9ca3af; }
+.data-card { background-color:#151821; border:1px solid #232838; border-radius:14px; padding:16px; margin-bottom:16px; }
+.data-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid #232838; font-size:13px; }
+.data-row:last-child { border-bottom:none; }
+.data-name { font-weight:700; color:#f39c12; }
+.data-meta { font-size:12px; color:#9ca3af; }
+.amount-up { color:#2ecc71; font-weight:700; }
+.amount-down { color:#ef4444; font-weight:700; }
