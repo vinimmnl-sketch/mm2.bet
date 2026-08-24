@@ -763,7 +763,6 @@ function CoinflipView({
                         if (!result.ok) return result;
                         return {
                           ok: true,
-                          error: undefined,
                           message: `Coin landed ${"result" in result ? result.result : ""} — you ${
                             "won" in result && result.won ? "won!" : "lost."
                           }`,
