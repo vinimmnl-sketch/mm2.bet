@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import "./mm2.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -143,100 +144,39 @@
   }
 }
 
-/* ===== MM2Bet platform theme ===== */
-.mm2 {
-  --mm2-bg: #0b0c10;
-  --mm2-surface: #161922;
-  --mm2-border: #222634;
-  --mm2-accent: #f39c12;
-  background-color: var(--mm2-bg);
-  color: #fff;
-  min-height: 100vh;
-  padding-bottom: 85px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
-.mm2 * { box-sizing: border-box; }
-.mm2 .navbar {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 15px 20px; background-color: var(--mm2-bg); position: sticky; top: 0; z-index: 100;
-}
-.mm2 .nav-left { display: flex; align-items: center; gap: 15px; }
-.mm2 .logo { font-size: 20px; font-weight: 800; letter-spacing: .5px; cursor: pointer; }
-.mm2 .logo span { color: var(--mm2-accent); }
-.mm2 .nav-right { display: flex; align-items: center; gap: 10px; }
-.mm2 .balance-badge {
-  background-color: var(--mm2-surface); border: 1px solid var(--mm2-border);
-  padding: 6px 12px; border-radius: 24px; display: flex; align-items: center; gap: 8px;
-  font-size: 15px; font-weight: 600;
-}
-.mm2 .balance-badge svg { width: 18px; height: 18px; stroke: var(--mm2-accent); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.mm2 .auth-btn-top {
-  background-color: var(--mm2-accent); color: #111; font-weight: 700; font-size: 13px;
-  padding: 6px 14px; border-radius: 20px; border: none; cursor: pointer;
-}
-.mm2 .user-profile-pill {
-  display: flex; align-items: center; gap: 8px; background-color: var(--mm2-surface);
-  border: 1px solid var(--mm2-border); padding: 4px 10px 4px 4px; border-radius: 20px; cursor: pointer;
-}
-.mm2 .user-avatar-img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid var(--mm2-accent); }
-.mm2 .user-name-text { font-size: 12px; font-weight: 700; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mm2 .view-content { padding: 15px 20px; }
-.mm2 .hero-banner {
-  position: relative; border-radius: 16px; padding: 24px 20px; overflow: hidden;
-  margin-bottom: 25px; border: 1px solid #2a2e3d; background-color: var(--mm2-surface);
-}
-.mm2 .hero-bg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; opacity: .85; }
-.mm2 .hero-overlay { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(15,17,23,.85) 0%, rgba(15,17,23,.4) 100%); z-index: 2; }
-.mm2 .hero-content { position: relative; z-index: 3; }
-.mm2 .hero-content h1 { font-size: 22px; font-weight: 900; margin-bottom: 6px; text-shadow: 0 2px 4px rgba(0,0,0,.8); }
-.mm2 .hero-content p { font-size: 13px; color: #f3f4f6; margin-bottom: 18px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
-.mm2 .btn { padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,.3); }
-.mm2 .btn-primary { background-color: var(--mm2-accent); color: #111; font-weight: 700; }
-.mm2 .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.mm2 .section-title { font-size: 16px; font-weight: 700; }
-.mm2 .live-feed-card { background-color: var(--mm2-surface); border: 1px solid var(--mm2-border); border-radius: 16px; padding: 16px; margin-bottom: 25px; }
-.mm2 .feed-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--mm2-border); font-size: 13px; }
-.mm2 .feed-item:last-child { border-bottom: none; }
-.mm2 .feed-user { font-weight: 700; color: var(--mm2-accent); }
-.mm2 .feed-empty { font-size: 13px; color: #9ca3af; text-align: center; padding: 8px 0; }
-.mm2 .auth-card {
-  background-color: #151821; border: 1px solid #232838; border-radius: 16px;
-  padding: 30px 20px; max-width: 400px; margin: 30px auto; text-align: center;
-}
-.mm2 .auth-card h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
-.mm2 .auth-card > p { font-size: 13px; color: #9ca3af; margin-bottom: 24px; }
-.mm2 .btn-discord-login {
-  width: 100%; background-color: #5865F2; color: #fff; font-weight: 700; font-size: 14px;
-  padding: 14px; border-radius: 12px; border: none; cursor: pointer; display: flex;
-  align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 12px rgba(88,101,242,.3); margin-bottom: 16px;
-}
-.mm2 .btn-discord-login svg { width: 20px; height: 20px; fill: #fff; }
-.mm2 .auth-divider { display: flex; align-items: center; text-align: center; color: #6b7280; font-size: 12px; margin: 16px 0; }
-.mm2 .auth-divider::before, .mm2 .auth-divider::after { content: ''; flex: 1; border-bottom: 1px solid #232838; }
-.mm2 .auth-divider::before { margin-right: 10px; }
-.mm2 .auth-divider::after { margin-left: 10px; }
-.mm2 .auth-input {
-  width: 100%; background-color: var(--mm2-bg); border: 1px solid #282e42; border-radius: 10px;
-  padding: 12px 14px; color: #fff; font-size: 14px; margin-bottom: 14px; outline: none;
-}
-.mm2 .auth-input:focus { border-color: var(--mm2-accent); }
-.mm2 .btn-auth-submit {
-  width: 100%; background-color: var(--mm2-accent); border: none; color: #111; font-weight: 700;
-  font-size: 14px; padding: 12px; border-radius: 10px; cursor: pointer;
-}
-.mm2 .btn-auth-submit:disabled, .mm2 .btn-discord-login:disabled { opacity: .6; cursor: not-allowed; }
-.mm2 .btn-ghost { background: none; border: 1px solid #282e42; color: #9ca3af; border-radius: 10px; padding: 10px; width: 100%; margin-top: 10px; cursor: pointer; font-size: 13px; }
-.mm2 .verification-code-box {
-  background-color: var(--mm2-bg); border: 1px dashed var(--mm2-accent); padding: 12px; border-radius: 8px;
-  margin-bottom: 14px; font-size: 14px; font-weight: bold; color: var(--mm2-accent); letter-spacing: 1px; word-break: break-all;
-}
-.mm2 .auth-hint { font-size: 12px; color: #9ca3af; margin-bottom: 8px; text-align: left; }
-.mm2 .auth-error { font-size: 12px; color: #ef4444; margin-bottom: 12px; }
-.mm2 .auth-success { font-size: 12px; color: #2ecc71; margin-bottom: 12px; }
-.mm2 .bottom-nav {
-  position: fixed; bottom: 0; left: 0; width: 100%; background-color: #12151d;
-  border-top: 1px solid #1f2430; display: flex; justify-content: space-around; padding: 10px 0; z-index: 100;
-}
-.mm2 .nav-item { display: flex; flex-direction: column; align-items: center; color: #6b7280; font-size: 11px; gap: 4px; cursor: pointer; background: none; border: none; }
-.mm2 .nav-item.active { color: var(--mm2-accent); }
-.mm2 .nav-item svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; }
+/* ===== MM2Bet live-data additions (auth + real game rows) ===== */
+.auth-card { background-color:#151821; border:1px solid #232838; border-radius:16px; padding:30px 20px; max-width:400px; margin:20px auto; text-align:center; }
+.auth-card h2 { font-size:22px; font-weight:800; margin-bottom:6px; }
+.auth-card > p { font-size:13px; color:#9ca3af; margin-bottom:24px; }
+.auth-input { width:100%; background-color:#0b0c10; border:1px solid #282e42; border-radius:10px; padding:12px 14px; color:#fff; font-size:14px; margin-bottom:14px; outline:none; }
+.auth-input:focus { border-color:#f39c12; }
+.btn-auth-submit { width:100%; background-color:#f39c12; border:none; color:#111; font-weight:700; font-size:14px; padding:12px; border-radius:10px; cursor:pointer; }
+.btn-auth-submit:disabled, .btn-discord-login:disabled { opacity:.6; cursor:not-allowed; }
+.btn-discord-login { width:100%; background-color:#5865F2; color:#fff; font-weight:700; font-size:14px; padding:14px; border-radius:12px; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; text-decoration:none; margin-bottom:16px; }
+.btn-discord-login svg { width:20px; height:20px; fill:#fff; }
+.auth-divider { display:flex; align-items:center; text-align:center; color:#6b7280; font-size:12px; margin:16px 0; }
+.auth-divider::before, .auth-divider::after { content:''; flex:1; border-bottom:1px solid #232838; }
+.auth-divider::before { margin-right:10px; }
+.auth-divider::after { margin-left:10px; }
+.verification-code-box { background-color:#0b0c10; border:1px dashed #f39c12; padding:12px; border-radius:8px; margin-bottom:14px; font-size:14px; font-weight:bold; color:#f39c12; letter-spacing:1px; word-break:break-all; }
+.auth-hint { font-size:12px; color:#9ca3af; margin-bottom:8px; text-align:left; }
+.auth-error { font-size:12px; color:#ef4444; margin-bottom:12px; }
+.auth-success { font-size:12px; color:#2ecc71; margin-bottom:12px; }
+.btn-ghost { background:none; border:1px solid #282e42; color:#9ca3af; border-radius:10px; padding:10px; width:100%; margin-top:10px; cursor:pointer; font-size:13px; }
+.user-profile-pill { display:flex; align-items:center; gap:8px; background-color:#161922; border:1px solid #222634; padding:4px 10px 4px 4px; border-radius:20px; cursor:pointer; }
+.user-avatar-img { width:28px; height:28px; border-radius:50%; object-fit:cover; border:1px solid #f39c12; }
+.user-name-text { font-size:12px; font-weight:700; max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.stake-row { display:flex; gap:10px; align-items:flex-start; margin-bottom:10px; }
+.stake-row .auth-input { margin-bottom:0; }
+.side-toggle { display:flex; gap:6px; }
+.side-btn { background:#0b0c10; border:1px solid #282e42; color:#9ca3af; border-radius:10px; padding:12px 14px; font-size:13px; font-weight:600; cursor:pointer; }
+.side-btn.active { background:#f39c12; color:#111; border-color:#f39c12; }
+.mini-btn { background:#f39c12; border:none; color:#111; font-weight:700; font-size:12px; padding:8px 14px; border-radius:8px; cursor:pointer; }
+.mini-btn.ghost { background:transparent; border:1px solid #282e42; color:#9ca3af; }
+.data-card { background-color:#151821; border:1px solid #232838; border-radius:14px; padding:16px; margin-bottom:16px; }
+.data-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid #232838; font-size:13px; }
+.data-row:last-child { border-bottom:none; }
+.data-name { font-weight:700; color:#f39c12; }
+.data-meta { font-size:12px; color:#9ca3af; }
+.amount-up { color:#2ecc71; font-weight:700; }
+.amount-down { color:#ef4444; font-weight:700; }
