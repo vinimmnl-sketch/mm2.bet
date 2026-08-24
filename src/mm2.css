@@ -1,0 +1,911 @@
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: #0b0c10;
+            color: #ffffff;
+            padding-bottom: 75px;
+        }
+
+        /* Top Navigation */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #0b0c10;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .menu-icon {
+            font-size: 22px;
+            cursor: pointer;
+            color: #9ca3af;
+        }
+        .logo {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+        }
+        .logo span {
+            color: #f39c12;
+        }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Vault Balance & Auth Buttons */
+        .balance-badge {
+            background-color: #161922;
+            border: 1px solid #222634;
+            padding: 6px 12px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        .balance-badge svg {
+            width: 18px;
+            height: 18px;
+            stroke: #f39c12;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .auth-btn-top {
+            background-color: #f39c12;
+            color: #111;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Discord Icon Button */
+        .discord-btn {
+            background-color: #161922;
+            border: 1px solid #222634;
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .discord-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: #9ca3af;
+        }
+
+        /* Views Container */
+        .view-content {
+            display: none;
+            padding: 15px 20px;
+        }
+        .view-content.active-view {
+            display: block;
+        }
+
+        /* Hero Banner */
+        .hero-banner {
+            position: relative;
+            border-radius: 16px;
+            padding: 24px 20px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            border: 1px solid #2a2e3d;
+            background-color: #161922;
+        }
+        .hero-bg-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+            opacity: 0.85;
+        }
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(15, 17, 23, 0.85) 0%, rgba(15, 17, 23, 0.4) 100%);
+            z-index: 2;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 3;
+        }
+        .hero-content h1 {
+            font-size: 22px;
+            font-weight: 900;
+            margin-bottom: 6px;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            letter-spacing: 0.5px;
+        }
+        .hero-content p {
+            font-size: 13px;
+            color: #f3f4f6;
+            margin-bottom: 18px;
+            font-weight: 600;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            min-height: 18px;
+        }
+        .typing-cursor {
+            display: inline-block;
+            background-color: #f39c12;
+            width: 2px;
+            height: 13px;
+            margin-left: 2px;
+            animation: blink 0.8s infinite;
+            vertical-align: middle;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .btn-primary {
+            background-color: #f39c12;
+            color: #111;
+            font-weight: 700;
+        }
+        .btn-secondary {
+            background-color: rgba(31, 41, 55, 0.8);
+            backdrop-filter: blur(4px);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Section Header */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .section-action {
+            font-size: 13px;
+            color: #9ca3af;
+            cursor: pointer;
+        }
+
+        /* Event Card */
+        .event-card {
+            background-color: #161922;
+            border: 1px solid #222634;
+            border-radius: 16px;
+            padding: 30px 20px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .event-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #f39c12;
+        }
+        .event-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .event-card p {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 20px;
+        }
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid #2a2e3d;
+            color: #ffffff;
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Game Common Header */
+        .game-top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .game-title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .game-icon-badge {
+            background-color: #1c1713;
+            border: 1px solid #3d2c1d;
+            border-radius: 10px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f39c12;
+        }
+        .game-icon-badge svg {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+        .game-title-group h2 {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+        }
+        .game-title-group p {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .btn-deposit-top {
+            background-color: #f39c12;
+            color: #111;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 8px 16px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Game Tabs Toggle */
+        .game-tabs {
+            display: flex;
+            background-color: #151821;
+            border: 1px solid #232838;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 16px;
+            gap: 4px;
+        }
+        .game-tab {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .game-tab.active {
+            background-color: #1e2230;
+            color: #fff;
+        }
+        .game-tab svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /* Jackpot View Styles */
+        .jackpot-arena {
+            background-color: #151821;
+            border: 1px solid #232838;
+            border-radius: 16px;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .jackpot-wheel-container {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px auto;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .wheel-svg {
+            width: 100%;
+            height: 100%;
+        }
+        .wheel-center-text {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .wheel-center-num {
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+        .wheel-center-lbl {
+            font-size: 11px;
+            font-weight: 600;
+            color: #9ca3af;
+            letter-spacing: 0.5px;
+        }
+        .wheel-pointer {
+            position: absolute;
+            top: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0; 
+            height: 0; 
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+            border-top: 12px solid #f39c12;
+            z-index: 5;
+        }
+        .jackpot-status {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .btn-jp-deposit {
+            background-color: #f39c12;
+            color: #111;
+            font-weight: 700;
+            font-size: 14px;
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(243, 156, 18, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Coinflip Lobby Styles */
+        .empty-lobby {
+            background-color: #151821;
+            border: 1px solid #232838;
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        /* Chat View Styles */
+        .chat-container {
+            background-color: #151821;
+            border: 1px solid #232838;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 160px);
+            overflow: hidden;
+        }
+        .chat-header-bar {
+            padding: 14px 16px;
+            border-bottom: 1px solid #232838;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #191c27;
+        }
+        .chat-room-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .online-indicator {
+            width: 8px;
+            height: 8px;
+            background-color: #2ecc71;
+            border-radius: 50%;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .chat-msg {
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .chat-msg .author {
+            font-weight: 700;
+            color: #f39c12;
+            margin-right: 6px;
+        }
+        .chat-msg .time {
+            font-size: 10px;
+            color: #6b7280;
+            margin-left: 6px;
+        }
+        .chat-input-bar {
+            padding: 12px 16px;
+            border-top: 1px solid #232838;
+            display: flex;
+            gap: 10px;
+            background-color: #151821;
+        }
+        .chat-input {
+            flex: 1;
+            background-color: #0b0c10;
+            border: 1px solid #282e42;
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #fff;
+            font-size: 13px;
+            outline: none;
+        }
+        .chat-send-btn {
+            background-color: #f39c12;
+            border: none;
+            color: #111;
+            font-weight: 700;
+            padding: 0 16px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        /* Rewards View Styles */
+        .rewards-banner {
+            background: linear-gradient(135deg, #1c1713 0%, #151821 100%);
+            border: 1px solid #3d2c1d;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .rewards-banner h2 {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            color: #f39c12;
+        }
+        .rewards-banner p {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 16px;
+        }
+        .reward-card {
+            background-color: #151821;
+            border: 1px solid #232838;
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .rc-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .rc-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #1c1713;
+            border: 1px solid #3d2c1d;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f39c12;
+        }
+        .rc-info h4 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .rc-info p {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .btn-claim {
+            background-color: #f39c12;
+            color: #111;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Auth Modal / View Styles */
+        .auth-card {
+            background-color: #151821;
+            border: 1px solid #232838;
+            border-radius: 16px;
+            padding: 30px 20px;
+            max-width: 400px;
+            margin: 30px auto;
+            text-align: center;
+        }
+        .auth-card h2 {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+        .auth-card p {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 24px;
+        }
+        .auth-input {
+            width: 100%;
+            background-color: #0b0c10;
+            border: 1px solid #282e42;
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 14px;
+            outline: none;
+        }
+        .btn-auth-submit {
+            width: 100%;
+            background-color: #f39c12;
+            color: #111;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        /* Wallet View Styling */
+        .wallet-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+        .wallet-icon-box {
+            background-color: #1c1713;
+            border: 1px solid #3d2c1d;
+            border-radius: 10px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f39c12;
+        }
+        .wallet-icon-box svg {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+        .wallet-title-area h2 {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+        }
+        .wallet-subtitle {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 20px;
+        }
+        .wallet-balance-card {
+            background-color: #151821;
+            border: 1px solid #232838;
+            border-radius: 16px;
+            padding: 22px;
+            position: relative;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        .wallet-balance-label {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        .wallet-balance-amount {
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .wallet-balance-amount span {
+            font-size: 15px;
+            font-weight: 600;
+            color: #9ca3af;
+        }
+        .wallet-usd-val {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .wallet-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .btn-deposit {
+            background-color: #1b1f2e;
+            border: 1px solid #2b3247;
+            color: #ffffff;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .btn-withdraw {
+            background-color: #f39c12;
+            border: none;
+            color: #111;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .wallet-bg-icon {
+            position: absolute;
+            right: -10px;
+            bottom: -15px;
+            width: 110px;
+            height: 110px;
+            opacity: 0.08;
+            color: #f39c12;
+            pointer-events: none;
+        }
+
+        /* Wallet Menu List Cards */
+        .wallet-menu-card {
+            background-color: #151821;
+            border: 1px solid #232838;
+            border-radius: 14px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .wallet-menu-card:hover {
+            background-color: #1c2130;
+        }
+        .wm-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .wm-icon.tips {
+            background-color: #1c1713;
+            border: 1px solid #3d2c1d;
+            color: #f39c12;
+        }
+        .wm-icon.winnings {
+            background-color: #132018;
+            border: 1px solid #1e3d28;
+            color: #2ecc71;
+        }
+        .wm-icon.history {
+            background-color: #1b1626;
+            border: 1px solid #36294d;
+            color: #a855f7;
+        }
+        .wm-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .wm-info h4 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 2px;
+        }
+        .wm-info p {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .wallet-section-header {
+            font-size: 15px;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 20px 0 12px 2px;
+        }
+
+        /* Games Popup Menu */
+        .games-popup {
+            position: fixed;
+            bottom: 75px;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px) scale(0.95);
+            width: 90%;
+            max-width: 330px;
+            background-color: #161922;
+            border: 1px solid #252a3a;
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+            z-index: 200;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .games-popup.show {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) translateY(0) scale(1);
+        }
+        .game-option {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            color: #d1d5db;
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 6px;
+            background: transparent;
+            transition: background 0.15s ease;
+        }
+        .game-option:hover {
+            background-color: #1f2433;
+            color: #fff;
+        }
+        .game-icon-svg {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: #9ca3af;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .popup-footer {
+            margin-top: 8px;
+            padding-top: 10px;
+            border-top: 1px solid #222736;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #2ecc71;
+            font-weight: 600;
+        }
+        .house-check {
+            width: 16px;
+            height: 16px;
+            background-color: #2ecc71;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0b0c10;
+            font-size: 10px;
+            font-weight: 900;
+        }
+
+        /* Bottom Navigation Bar */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #12151d;
+            border-top: 1px solid #1f2430;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #6b7280;
+            font-size: 11px;
+            text-decoration: none;
+            gap: 4px;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        .nav-item.active {
+            color: #f39c12;
+        }
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .nav-item.active svg {
+            stroke: #f39c12;
+        }
+        .nav-item.active svg.home-filled {
+            fill: #f39c12;
+            stroke: none;
+        }
