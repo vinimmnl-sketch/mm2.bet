@@ -16,6 +16,7 @@ import {
   joinCoinflip,
   joinJackpot,
   listCoinflips,
+  listJackpotHistory,
   listTransactions,
 } from "@/lib/games.functions";
 
@@ -59,7 +60,7 @@ function useTypingText() {
 
     const tick = () => {
       if (cancelled) return;
-      const full = TYPING_WORDS[word];
+      const full = TYPING_WORDS[word] ?? "";
       if (!deleting) {
         char += 1;
         setText(full.slice(0, char));
@@ -410,22 +411,38 @@ function JackpotView({
   signedIn: boolean;
 }) {
   const fetchJackpotState = useServerFn(getJackpot);
+  const fetchHistory = useServerFn(listJackpotHistory);
   const enter = useServerFn(joinJackpot);
   const { error, notice, busy, run } = useAction();
   const [amount, setAmount] = useState("10");
+  const [tab, setTab] = useState<"current" | "history">("current");
+  const [now, setNow] = useState(() => Date.now());
 
   const { data: jackpot } = useQuery({
     queryKey: ["jackpot"],
     queryFn: () => fetchJackpotState(),
-    refetchInterval: 5000,
+    refetchInterval: active ? 2000 : false,
   });
+
+  const { data: history = [] } = useQuery({
+    queryKey: ["jackpot-history"],
+    queryFn: () => fetchHistory(),
+    enabled: active && tab === "history",
+  });
+
+  useEffect(() => {
+    if (!active) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [active]);
 
   const entries = jackpot?.entries ?? [];
   const total = jackpot?.total ?? 0;
+  const players = jackpot?.playerCount ?? 0;
   const endsIn = jackpot?.endsAt
-    ? Math.max(0, Math.round((new Date(jackpot.endsAt).getTime() - Date.now()) / 1000))
+    ? Math.max(0, Math.round((new Date(jackpot.endsAt).getTime() - now) / 1000))
     : null;
-  const progress = Math.min(1, entries.length / 2);
+  const progress = endsIn !== null ? Math.max(0, Math.min(1, endsIn / 60)) : Math.min(1, players / 2);
 
   return (
     <div className={`view-content${active ? " active-view" : ""}`}>
@@ -438,7 +455,7 @@ function JackpotView({
           </div>
           <div>
             <h2>Jackpot</h2>
-            <p>Round #{jackpot?.round ?? "—"}</p>
+            <p>Round #{jackpot?.roundNumber ?? "—"}</p>
           </div>
         </div>
         <button className="btn-deposit-top" onClick={onDeposit}>
@@ -447,13 +464,19 @@ function JackpotView({
       </div>
 
       <div className="game-tabs">
-        <button className="game-tab active">
+        <button
+          className={`game-tab${tab === "current" ? " active" : ""}`}
+          onClick={() => setTab("current")}
+        >
           <svg viewBox="0 0 24 24">
             <path d="M12 2c0 4-4 6-4 10a4 4 0 0 0 8 0c0-2-.5-3-1-4 2 1 3 3 3 5a6 6 0 1 1-12 0c0-3.5 2-6 5-11Z"></path>
           </svg>
           Current Round
         </button>
-        <button className="game-tab">
+        <button
+          className={`game-tab${tab === "history" ? " active" : ""}`}
+          onClick={() => setTab("history")}
+        >
           <svg viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="10"></circle>
             <polyline points="12 6 12 12 16 14"></polyline>
@@ -462,6 +485,23 @@ function JackpotView({
         </button>
       </div>
 
+      {tab === "history" ? (
+        history.length === 0 ? (
+          <div className="empty-lobby">No completed rounds yet.</div>
+        ) : (
+          <div className="data-card">
+            {history.map((round) => (
+              <div key={round.id} className="data-row">
+                <span className="data-name">Round #{round.roundNumber}</span>
+                <span className="data-meta">
+                  {round.winner} won {round.total.toFixed(2)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )
+      ) : (
+      <>
       <div className="jackpot-arena">
         <div className="jackpot-wheel-container">
           <div className="wheel-pointer"></div>
@@ -485,8 +525,10 @@ function JackpotView({
         </div>
         <div className="jackpot-status">
           {endsIn !== null
-            ? `Drawing in ${endsIn}s`
-            : `Waiting for players (${entries.length}/2 minimum)`}
+            ? endsIn > 0
+              ? `Drawing in ${endsIn}s`
+              : "Drawing winner…"
+            : `Waiting for players (${players}/2 minimum)`}
         </div>
         {error ? <div className="auth-error">{error}</div> : null}
         {notice ? <div className="auth-success">{notice}</div> : null}
@@ -551,6 +593,8 @@ function JackpotView({
           </div>
         </div>
       ) : null}
+      </>
+      )}
     </div>
   );
 }
