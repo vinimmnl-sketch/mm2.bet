@@ -617,12 +617,17 @@ function CoinflipView({
   const [amount, setAmount] = useState("10");
   const [side, setSide] = useState<"heads" | "tails">("heads");
   const [showCreate, setShowCreate] = useState(false);
+  const [tab, setTab] = useState<"open" | "history">("open");
 
-  const { data: flips = [] } = useQuery({
+  const { data: allFlips = [] } = useQuery({
     queryKey: ["coinflips"],
     queryFn: () => fetchFlips(),
-    refetchInterval: 5000,
+    refetchInterval: active ? 2000 : false,
   });
+
+  const flips = allFlips.filter((flip) =>
+    tab === "open" ? flip.status === "open" : flip.status !== "open",
+  );
 
   return (
     <div className={`view-content${active ? " active-view" : ""}`}>
@@ -646,7 +651,10 @@ function CoinflipView({
       </div>
 
       <div className="game-tabs">
-        <button className="game-tab active">
+        <button
+          className={`game-tab${tab === "open" ? " active" : ""}`}
+          onClick={() => setTab("open")}
+        >
           <svg viewBox="0 0 24 24">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
             <circle cx="9" cy="7" r="4"></circle>
@@ -655,7 +663,10 @@ function CoinflipView({
           </svg>
           Open Games
         </button>
-        <button className="game-tab">
+        <button
+          className={`game-tab${tab === "history" ? " active" : ""}`}
+          onClick={() => setTab("history")}
+        >
           <svg viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="10"></circle>
             <polyline points="12 6 12 12 16 14"></polyline>
@@ -707,7 +718,9 @@ function CoinflipView({
 
       {flips.length === 0 ? (
         <div className="empty-lobby">
-          No active coinflip games found. Create one or deposit to start playing!
+          {tab === "open"
+            ? "No active coinflip games found. Create one or deposit to start playing!"
+            : "No finished coinflips yet."}
         </div>
       ) : (
         <div className="data-card">
@@ -741,7 +754,19 @@ function CoinflipView({
                   <button
                     className="mini-btn"
                     disabled={busy}
-                    onClick={() => void run(() => join({ data: { id: flip.id } }), "Flip settled.")}
+                    onClick={() =>
+                      void run(async () => {
+                        const result = await join({ data: { id: flip.id } });
+                        if (!result.ok) return result;
+                        return {
+                          ok: true,
+                          error: undefined,
+                          message: `Coin landed ${"result" in result ? result.result : ""} — you ${
+                            "won" in result && result.won ? "won!" : "lost."
+                          }`,
+                        };
+                      }, "Flip settled.")
+                    }
                   >
                     Join
                   </button>
