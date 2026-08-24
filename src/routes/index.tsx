@@ -382,14 +382,17 @@ function useAction() {
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function run(fn: () => Promise<{ ok: boolean; error?: string }>, success: string) {
+  async function run(
+    fn: () => Promise<{ ok: boolean; error?: string; message?: string }>,
+    success: string,
+  ) {
     setError(null);
     setNotice(null);
     setBusy(true);
     try {
       const result = await fn();
       if (!result.ok) setError(result.error ?? "Something went wrong.");
-      else setNotice(success);
+      else setNotice(result.message ?? success);
       await queryClient.invalidateQueries();
     } catch {
       setError("Something went wrong. Try again.");
