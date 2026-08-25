@@ -19,6 +19,13 @@ import {
   listJackpotHistory,
   listTransactions,
 } from "@/lib/games.functions";
+import {
+  adminGrantTokens,
+  adminSearchMembers,
+  amIAdmin,
+  playBotCoinflip,
+} from "@/lib/admin.functions";
+import { CoinAnimation } from "@/components/CoinAnimation";
 
 export const Route = createFileRoute("/")({
   head: () => ({
