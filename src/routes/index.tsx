@@ -1226,3 +1226,111 @@ function AuthCard({
     </div>
   );
 }
+
+function AdminView({ active }: { active: boolean }) {
+  const search = useServerFn(adminSearchMembers);
+  const grant = useServerFn(adminGrantTokens);
+  const { error, notice, busy, run } = useAction();
+  const [query, setQuery] = useState("");
+  const [amounts, setAmounts] = useState<Record<string, string>>({});
+
+  const { data: members = [] } = useQuery({
+    queryKey: ["admin-members", query],
+    queryFn: () => search({ data: { query } }),
+    enabled: active,
+  });
+
+  return (
+    <div className={`view-content${active ? " active-view" : ""}`}>
+      <div className="game-top-header">
+        <div className="game-title-group">
+          <div className="game-icon-badge">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2l8 4v6c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6z"></path>
+            </svg>
+          </div>
+          <div>
+            <h2>Admin Panel</h2>
+            <p>Grant or deduct player tokens</p>
+          </div>
+        </div>
+      </div>
+
+      {error ? <div className="auth-error">{error}</div> : null}
+      {notice ? <div className="auth-success">{notice}</div> : null}
+
+      <div className="data-card">
+        <input
+          className="auth-input"
+          value={query}
+          placeholder="Search Discord or Roblox username"
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
+
+      {members.length === 0 ? (
+        <div className="empty-lobby">No members found.</div>
+      ) : (
+        <div className="data-card">
+          {members.map((m) => (
+            <div key={m.id} style={{ padding: "10px 0", borderBottom: "1px solid #232838" }}>
+              <div className="data-row" style={{ borderBottom: "none", padding: 0 }}>
+                <span className="data-name">
+                  {m.name}
+                  {m.isAdmin ? <span className="admin-badge">ADMIN</span> : null}
+                </span>
+                <span className="data-meta">{m.balance.toFixed(2)} tokens</span>
+              </div>
+              <div className="admin-grant-row">
+                <input
+                  type="number"
+                  placeholder="Amount"
+                  value={amounts[m.id] ?? ""}
+                  onChange={(e) => setAmounts((a) => ({ ...a, [m.id]: e.target.value }))}
+                />
+                <button
+                  className="mini-btn"
+                  disabled={busy || !Number(amounts[m.id])}
+                  onClick={() =>
+                    void run(
+                      () =>
+                        grant({
+                          data: {
+                            memberId: m.id,
+                            amount: Math.abs(Number(amounts[m.id])),
+                            note: "Admin grant",
+                          },
+                        }),
+                      `Granted tokens to ${m.name}.`,
+                    )
+                  }
+                >
+                  Grant
+                </button>
+                <button
+                  className="mini-btn ghost"
+                  disabled={busy || !Number(amounts[m.id])}
+                  onClick={() =>
+                    void run(
+                      () =>
+                        grant({
+                          data: {
+                            memberId: m.id,
+                            amount: -Math.abs(Number(amounts[m.id])),
+                            note: "Admin deduction",
+                          },
+                        }),
+                      `Deducted tokens from ${m.name}.`,
+                    )
+                  }
+                >
+                  Deduct
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
