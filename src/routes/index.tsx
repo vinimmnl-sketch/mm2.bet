@@ -48,7 +48,15 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type View = "home" | "jackpot" | "coinflip" | "chat" | "rewards" | "signup" | "wallet";
+type View =
+  | "home"
+  | "jackpot"
+  | "coinflip"
+  | "chat"
+  | "rewards"
+  | "signup"
+  | "wallet"
+  | "admin";
 
 const TYPING_WORDS = [
   "The Best Roblox MM2 Casino",
