@@ -871,15 +871,15 @@ function CoinflipView({
                 ) : (
                   <button
                     className="mini-btn"
-                    disabled={busy}
+                    disabled={busy || spinning}
                     onClick={() =>
                       void run(async () => {
-                        const result = await join({ data: { id: flip.id } });
+                        const result = await animateFlip(() => join({ data: { id: flip.id } }));
                         if (!result.ok) return result;
                         return {
                           ok: true,
-                          message: `Coin landed ${"result" in result ? result.result : ""} — you ${
-                            "won" in result && result.won ? "won!" : "lost."
+                          message: `Coin landed ${result.result ?? ""} — you ${
+                            result.won ? "won!" : "lost."
                           }`,
                         };
                       }, "Flip settled.")
