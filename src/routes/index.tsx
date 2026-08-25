@@ -348,7 +348,7 @@ function Index() {
             <span>Admin Panel</span>
           </div>
         ) : null}
-
+        <div className="popup-footer">
           <div className="house-check">✓</div>
           <span>0% House Edge</span>
         </div>
