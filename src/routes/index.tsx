@@ -121,6 +121,13 @@ function Index() {
     queryFn: () => fetchMember(),
   });
 
+  const fetchIsAdmin = useServerFn(amIAdmin);
+  const { data: isAdmin = false } = useQuery({
+    queryKey: ["is-admin", member?.id ?? null],
+    queryFn: () => fetchIsAdmin(),
+    enabled: !!member,
+  });
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const error = params.get("auth_error");
