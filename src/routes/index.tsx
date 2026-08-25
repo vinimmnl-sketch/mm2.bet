@@ -340,7 +340,15 @@ function Index() {
           </svg>
           <span>Jackpot</span>
         </div>
-        <div className="popup-footer">
+        {isAdmin ? (
+          <div className="game-option" onClick={() => go("admin")}>
+            <svg className="game-icon-svg" viewBox="0 0 24 24">
+              <path d="M12 2l8 4v6c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6z"></path>
+            </svg>
+            <span>Admin Panel</span>
+          </div>
+        ) : null}
+
           <div className="house-check">✓</div>
           <span>0% House Edge</span>
         </div>
