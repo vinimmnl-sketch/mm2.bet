@@ -319,6 +319,11 @@ function Index() {
       {/* WALLET VIEW */}
       <WalletView active={view === "wallet"} balance={balance} />
 
+      {/* ADMIN VIEW */}
+      {isAdmin ? <AdminView active={view === "admin"} /> : null}
+
+
+
       {/* Games Popup Menu */}
       <div className={`games-popup${popupOpen ? " show" : ""}`} onClick={(e) => e.stopPropagation()}>
         <div className="game-option" onClick={() => requireAuth("coinflip")}>
