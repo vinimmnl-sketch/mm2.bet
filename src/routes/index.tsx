@@ -19,6 +19,13 @@ import {
   listJackpotHistory,
   listTransactions,
 } from "@/lib/games.functions";
+import {
+  adminGrantTokens,
+  adminSearchMembers,
+  amIAdmin,
+  playBotCoinflip,
+} from "@/lib/admin.functions";
+import { CoinAnimation } from "@/components/CoinAnimation";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -41,7 +48,15 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type View = "home" | "jackpot" | "coinflip" | "chat" | "rewards" | "signup" | "wallet";
+type View =
+  | "home"
+  | "jackpot"
+  | "coinflip"
+  | "chat"
+  | "rewards"
+  | "signup"
+  | "wallet"
+  | "admin";
 
 const TYPING_WORDS = [
   "The Best Roblox MM2 Casino",
@@ -104,6 +119,13 @@ function Index() {
   const { data: member } = useQuery({
     queryKey: ["member"],
     queryFn: () => fetchMember(),
+  });
+
+  const fetchIsAdmin = useServerFn(amIAdmin);
+  const { data: isAdmin = false } = useQuery({
+    queryKey: ["is-admin", member?.id ?? null],
+    queryFn: () => fetchIsAdmin(),
+    enabled: !!member,
   });
 
   useEffect(() => {
@@ -297,6 +319,11 @@ function Index() {
       {/* WALLET VIEW */}
       <WalletView active={view === "wallet"} balance={balance} />
 
+      {/* ADMIN VIEW */}
+      {isAdmin ? <AdminView active={view === "admin"} /> : null}
+
+
+
       {/* Games Popup Menu */}
       <div className={`games-popup${popupOpen ? " show" : ""}`} onClick={(e) => e.stopPropagation()}>
         <div className="game-option" onClick={() => requireAuth("coinflip")}>
@@ -313,6 +340,14 @@ function Index() {
           </svg>
           <span>Jackpot</span>
         </div>
+        {isAdmin ? (
+          <div className="game-option" onClick={() => go("admin")}>
+            <svg className="game-icon-svg" viewBox="0 0 24 24">
+              <path d="M12 2l8 4v6c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6z"></path>
+            </svg>
+            <span>Admin Panel</span>
+          </div>
+        ) : null}
         <div className="popup-footer">
           <div className="house-check">✓</div>
           <span>0% House Edge</span>
@@ -615,12 +650,32 @@ function CoinflipView({
   const create = useServerFn(createCoinflip);
   const join = useServerFn(joinCoinflip);
   const cancel = useServerFn(cancelCoinflip);
+  const botFlip = useServerFn(playBotCoinflip);
   const { error, notice, busy, run } = useAction();
 
   const [amount, setAmount] = useState("10");
   const [side, setSide] = useState<"heads" | "tails">("heads");
   const [showCreate, setShowCreate] = useState(false);
   const [tab, setTab] = useState<"open" | "history">("open");
+  const [spinning, setSpinning] = useState(false);
+  const [coinResult, setCoinResult] = useState<"heads" | "tails" | null>(null);
+
+  async function animateFlip(
+    call: () => Promise<{ ok: boolean; error?: string; result?: string; won?: boolean }>,
+  ) {
+    setCoinResult(null);
+    setSpinning(true);
+    const started = Date.now();
+    const outcome = await call().catch(() => ({ ok: false, error: "Something went wrong." }));
+    const wait = Math.max(0, 2600 - (Date.now() - started));
+    await new Promise((r) => setTimeout(r, wait));
+    setSpinning(false);
+    if (outcome.ok && "result" in outcome && outcome.result) {
+      setCoinResult(outcome.result as "heads" | "tails");
+    }
+    return outcome;
+  }
+
 
   const { data: allFlips = [] } = useQuery({
     queryKey: ["coinflips"],
@@ -678,8 +733,68 @@ function CoinflipView({
         </button>
       </div>
 
+      <CoinAnimation spinning={spinning} result={coinResult} />
+      <div className="coin-result">
+        {spinning
+          ? "Flipping…"
+          : coinResult
+            ? <>Landed on <b>{coinResult}</b></>
+            : "Pick a side and flip"}
+      </div>
+
       {error ? <div className="auth-error">{error}</div> : null}
       {notice ? <div className="auth-success">{notice}</div> : null}
+
+      {signedIn ? (
+        <div className="data-card">
+          <div className="stake-row">
+            <input
+              className="auth-input"
+              type="number"
+              min="1"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="Stake"
+            />
+            <div className="side-toggle">
+              <button
+                className={`side-btn${side === "heads" ? " active" : ""}`}
+                onClick={() => setSide("heads")}
+              >
+                Heads
+              </button>
+              <button
+                className={`side-btn${side === "tails" ? " active" : ""}`}
+                onClick={() => setSide("tails")}
+              >
+                Tails
+              </button>
+            </div>
+          </div>
+          <div className="bot-row">
+            <button
+              className="mini-btn"
+              disabled={busy || spinning || !(Number(amount) > 0)}
+              onClick={() =>
+                void run(async () => {
+                  const outcome = await animateFlip(() =>
+                    botFlip({ data: { amount: Number(amount), side } }),
+                  );
+                  if (!outcome.ok) return outcome;
+                  return {
+                    ok: true,
+                    message: `Coin landed ${outcome.result} — you ${outcome.won ? "beat the bot!" : "lost to the bot."}`,
+                  };
+                }, "Bot flip settled.")
+              }
+            >
+              {spinning ? "Flipping…" : "🤖 Play vs Bot"}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+
 
       {showCreate && signedIn ? (
         <div className="data-card">
@@ -756,15 +871,15 @@ function CoinflipView({
                 ) : (
                   <button
                     className="mini-btn"
-                    disabled={busy}
+                    disabled={busy || spinning}
                     onClick={() =>
                       void run(async () => {
-                        const result = await join({ data: { id: flip.id } });
+                        const result = await animateFlip(() => join({ data: { id: flip.id } }));
                         if (!result.ok) return result;
                         return {
                           ok: true,
-                          message: `Coin landed ${"result" in result ? result.result : ""} — you ${
-                            "won" in result && result.won ? "won!" : "lost."
+                          message: `Coin landed ${result.result ?? ""} — you ${
+                            result.won ? "won!" : "lost."
                           }`,
                         };
                       }, "Flip settled.")
@@ -1108,6 +1223,114 @@ function AuthCard({
       <p style={{ fontSize: 11, color: "#6b7280", marginTop: 10 }}>
         By continuing, you agree to site terms and 0% house edge conditions.
       </p>
+    </div>
+  );
+}
+
+function AdminView({ active }: { active: boolean }) {
+  const search = useServerFn(adminSearchMembers);
+  const grant = useServerFn(adminGrantTokens);
+  const { error, notice, busy, run } = useAction();
+  const [query, setQuery] = useState("");
+  const [amounts, setAmounts] = useState<Record<string, string>>({});
+
+  const { data: members = [] } = useQuery({
+    queryKey: ["admin-members", query],
+    queryFn: () => search({ data: { query } }),
+    enabled: active,
+  });
+
+  return (
+    <div className={`view-content${active ? " active-view" : ""}`}>
+      <div className="game-top-header">
+        <div className="game-title-group">
+          <div className="game-icon-badge">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2l8 4v6c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6z"></path>
+            </svg>
+          </div>
+          <div>
+            <h2>Admin Panel</h2>
+            <p>Grant or deduct player tokens</p>
+          </div>
+        </div>
+      </div>
+
+      {error ? <div className="auth-error">{error}</div> : null}
+      {notice ? <div className="auth-success">{notice}</div> : null}
+
+      <div className="data-card">
+        <input
+          className="auth-input"
+          value={query}
+          placeholder="Search Discord or Roblox username"
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
+
+      {members.length === 0 ? (
+        <div className="empty-lobby">No members found.</div>
+      ) : (
+        <div className="data-card">
+          {members.map((m) => (
+            <div key={m.id} style={{ padding: "10px 0", borderBottom: "1px solid #232838" }}>
+              <div className="data-row" style={{ borderBottom: "none", padding: 0 }}>
+                <span className="data-name">
+                  {m.name}
+                  {m.isAdmin ? <span className="admin-badge">ADMIN</span> : null}
+                </span>
+                <span className="data-meta">{m.balance.toFixed(2)} tokens</span>
+              </div>
+              <div className="admin-grant-row">
+                <input
+                  type="number"
+                  placeholder="Amount"
+                  value={amounts[m.id] ?? ""}
+                  onChange={(e) => setAmounts((a) => ({ ...a, [m.id]: e.target.value }))}
+                />
+                <button
+                  className="mini-btn"
+                  disabled={busy || !Number(amounts[m.id])}
+                  onClick={() =>
+                    void run(
+                      () =>
+                        grant({
+                          data: {
+                            memberId: m.id,
+                            amount: Math.abs(Number(amounts[m.id])),
+                            note: "Admin grant",
+                          },
+                        }),
+                      `Granted tokens to ${m.name}.`,
+                    )
+                  }
+                >
+                  Grant
+                </button>
+                <button
+                  className="mini-btn ghost"
+                  disabled={busy || !Number(amounts[m.id])}
+                  onClick={() =>
+                    void run(
+                      () =>
+                        grant({
+                          data: {
+                            memberId: m.id,
+                            amount: -Math.abs(Number(amounts[m.id])),
+                            note: "Admin deduction",
+                          },
+                        }),
+                      `Deducted tokens from ${m.name}.`,
+                    )
+                  }
+                >
+                  Deduct
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
