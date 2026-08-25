@@ -650,12 +650,32 @@ function CoinflipView({
   const create = useServerFn(createCoinflip);
   const join = useServerFn(joinCoinflip);
   const cancel = useServerFn(cancelCoinflip);
+  const botFlip = useServerFn(playBotCoinflip);
   const { error, notice, busy, run } = useAction();
 
   const [amount, setAmount] = useState("10");
   const [side, setSide] = useState<"heads" | "tails">("heads");
   const [showCreate, setShowCreate] = useState(false);
   const [tab, setTab] = useState<"open" | "history">("open");
+  const [spinning, setSpinning] = useState(false);
+  const [coinResult, setCoinResult] = useState<"heads" | "tails" | null>(null);
+
+  async function animateFlip(
+    call: () => Promise<{ ok: boolean; error?: string; result?: string; won?: boolean }>,
+  ) {
+    setCoinResult(null);
+    setSpinning(true);
+    const started = Date.now();
+    const outcome = await call().catch(() => ({ ok: false, error: "Something went wrong." }));
+    const wait = Math.max(0, 2600 - (Date.now() - started));
+    await new Promise((r) => setTimeout(r, wait));
+    setSpinning(false);
+    if (outcome.ok && "result" in outcome && outcome.result) {
+      setCoinResult(outcome.result as "heads" | "tails");
+    }
+    return outcome;
+  }
+
 
   const { data: allFlips = [] } = useQuery({
     queryKey: ["coinflips"],
