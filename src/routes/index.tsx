@@ -733,8 +733,68 @@ function CoinflipView({
         </button>
       </div>
 
+      <CoinAnimation spinning={spinning} result={coinResult} />
+      <div className="coin-result">
+        {spinning
+          ? "Flipping…"
+          : coinResult
+            ? <>Landed on <b>{coinResult}</b></>
+            : "Pick a side and flip"}
+      </div>
+
       {error ? <div className="auth-error">{error}</div> : null}
       {notice ? <div className="auth-success">{notice}</div> : null}
+
+      {signedIn ? (
+        <div className="data-card">
+          <div className="stake-row">
+            <input
+              className="auth-input"
+              type="number"
+              min="1"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="Stake"
+            />
+            <div className="side-toggle">
+              <button
+                className={`side-btn${side === "heads" ? " active" : ""}`}
+                onClick={() => setSide("heads")}
+              >
+                Heads
+              </button>
+              <button
+                className={`side-btn${side === "tails" ? " active" : ""}`}
+                onClick={() => setSide("tails")}
+              >
+                Tails
+              </button>
+            </div>
+          </div>
+          <div className="bot-row">
+            <button
+              className="mini-btn"
+              disabled={busy || spinning || !(Number(amount) > 0)}
+              onClick={() =>
+                void run(async () => {
+                  const outcome = await animateFlip(() =>
+                    botFlip({ data: { amount: Number(amount), side } }),
+                  );
+                  if (!outcome.ok) return outcome;
+                  return {
+                    ok: true,
+                    message: `Coin landed ${outcome.result} — you ${outcome.won ? "beat the bot!" : "lost to the bot."}`,
+                  };
+                }, "Bot flip settled.")
+              }
+            >
+              {spinning ? "Flipping…" : "🤖 Play vs Bot"}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+
 
       {showCreate && signedIn ? (
         <div className="data-card">
