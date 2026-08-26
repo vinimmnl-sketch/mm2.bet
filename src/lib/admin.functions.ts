@@ -42,10 +42,13 @@ export const adminGrantTokens = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { memberFromCookieHeader } = await import("./session.server");
     const { memberIsAdmin, grantTokensTo } = await import("./admin.server");
+    const { limitOrFail } = await import("./rate-limit.server");
     const member = await memberFromCookieHeader(getRequestHeader("cookie") ?? null);
     if (!member || !(await memberIsAdmin(member.id))) {
       return { ok: false as const, error: "Admins only." };
     }
+    const limited = await limitOrFail("grant", member.id, 20, 60);
+    if (limited) return limited;
     return grantTokensTo(data.memberId, data.amount, data.note);
   });
 
@@ -58,7 +61,10 @@ export const playBotCoinflip = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { memberFromCookieHeader } = await import("./session.server");
     const { playBotFlip } = await import("./admin.server");
+    const { limitOrFail } = await import("./rate-limit.server");
     const member = await memberFromCookieHeader(getRequestHeader("cookie") ?? null);
     if (!member) return { ok: false as const, error: "Sign in first." };
+    const limited = await limitOrFail("bot-flip", member.id, 15, 30);
+    if (limited) return limited;
     return playBotFlip(member.id, data.amount, data.side);
   });
