@@ -14,6 +14,76 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          active: boolean
+          body: string
+          created_at: string
+          created_by: string | null
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          body: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          author: string
+          created_at: string
+          id: string
+          member_id: string
+          text: string
+        }
+        Insert: {
+          author: string
+          created_at?: string
+          id?: string
+          member_id: string
+          text: string
+        }
+        Update: {
+          author?: string
+          created_at?: string
+          id?: string
+          member_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coinflips: {
         Row: {
           amount: number
@@ -220,6 +290,27 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          count: number
+          key: string
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          count?: number
+          key: string
+          updated_at?: string
+          window_start?: string
+        }
+        Update: {
+          count?: number
+          key?: string
+          updated_at?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -268,6 +359,10 @@ export type Database = {
           _note: string
         }
         Returns: number
+      }
+      rate_limit_hit: {
+        Args: { _key: string; _limit: number; _window_seconds: number }
+        Returns: boolean
       }
     }
     Enums: {
