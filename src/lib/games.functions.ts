@@ -54,8 +54,11 @@ export const createCoinflip = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { requireMember, createFlip } = await import("./games.server");
+    const { limitOrFail } = await import("./rate-limit.server");
     const member = await requireMember(getRequestHeader("cookie") ?? null);
     if (!member) return { ok: false as const, error: "Sign in first." };
+    const limited = await limitOrFail("flip-create", member.id, 10, 30);
+    if (limited) return limited;
     return createFlip(member.id, Number(member.balance), data.amount, data.side);
   });
 
@@ -63,8 +66,11 @@ export const joinCoinflip = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data }) => {
     const { requireMember, joinFlip } = await import("./games.server");
+    const { limitOrFail } = await import("./rate-limit.server");
     const member = await requireMember(getRequestHeader("cookie") ?? null);
     if (!member) return { ok: false as const, error: "Sign in first." };
+    const limited = await limitOrFail("flip-join", member.id, 15, 30);
+    if (limited) return limited;
     return joinFlip(member.id, Number(member.balance), data.id);
   });
 
@@ -95,8 +101,11 @@ export const joinJackpot = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ amount: z.number().positive().max(1_000_000) }).parse(input))
   .handler(async ({ data }) => {
     const { requireMember, enterJackpot } = await import("./games.server");
+    const { limitOrFail } = await import("./rate-limit.server");
     const member = await requireMember(getRequestHeader("cookie") ?? null);
     if (!member) return { ok: false as const, error: "Sign in first." };
+    const limited = await limitOrFail("jackpot-join", member.id, 10, 30);
+    if (limited) return limited;
     return enterJackpot(member.id, Number(member.balance), data.amount);
   });
 
