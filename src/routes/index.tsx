@@ -25,6 +25,13 @@ import {
   amIAdmin,
   playBotCoinflip,
 } from "@/lib/admin.functions";
+import { listChatMessages, sendChatMessage } from "@/lib/chat.functions";
+import {
+  adminHideAnnouncement,
+  adminListAnnouncements,
+  adminPublishAnnouncement,
+  getAnnouncement,
+} from "@/lib/announcements.functions";
 import { CoinAnimation } from "@/components/CoinAnimation";
 
 export const Route = createFileRoute("/")({
@@ -269,7 +276,7 @@ function Index() {
       />
 
       {/* CHAT VIEW */}
-      <ChatView active={view === "chat"} name={displayName} />
+      <ChatView active={view === "chat"} signedIn={!!member} />
 
       {/* REWARDS VIEW */}
       <div className={`view-content${view === "rewards" ? " active-view" : ""}`}>
@@ -897,31 +904,50 @@ function CoinflipView({
   );
 }
 
-type ChatMessage = { id: number; author: string; text: string; time: string };
+function timeAgo(iso: string): string {
+  const seconds = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (seconds < 60) return "Just now";
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  return `${Math.floor(seconds / 86400)}d ago`;
+}
 
-function ChatView({ active, name }: { active: boolean; name: string | null }) {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 0,
-      author: "System",
-      text: "Welcome to MM2Bet Global Chat! Be respectful.",
-      time: "Just now",
-    },
-  ]);
+function ChatView({ active, signedIn }: { active: boolean; signedIn: boolean }) {
+  const fetchMessages = useServerFn(listChatMessages);
+  const sendMessage = useServerFn(sendChatMessage);
+  const queryClient = useQueryClient();
   const [input, setInput] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
-  function send() {
+  const { data: messages = [] } = useQuery({
+    queryKey: ["chat"],
+    queryFn: () => fetchMessages(),
+    refetchInterval: active ? 3000 : false,
+  });
+
+  useEffect(() => {
+    if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
+  }, [messages.length, active]);
+
+  async function send() {
     const text = input.trim();
-    if (!text) return;
-    setMessages((prev) => [
-      ...prev,
-      { id: prev.length, author: name ?? "You", text, time: "Just now" },
-    ]);
-    setInput("");
-    requestAnimationFrame(() => {
-      if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
-    });
+    if (!text || busy) return;
+    setError(null);
+    setBusy(true);
+    try {
+      const result = await sendMessage({ data: { text } });
+      if (!result.ok) setError(result.error ?? "Could not send that message.");
+      else {
+        setInput("");
+        await queryClient.invalidateQueries({ queryKey: ["chat"] });
+      }
+    } catch {
+      setError("Could not send that message.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -934,27 +960,37 @@ function ChatView({ active, name }: { active: boolean; name: string | null }) {
           </div>
         </div>
         <div className="chat-messages" ref={listRef}>
-          {messages.map((msg) => (
-            <div key={msg.id} className="chat-msg">
-              <span className="author">{msg.author}:</span>
-              {msg.text}
-              <span className="time">{msg.time}</span>
+          {messages.length === 0 ? (
+            <div className="chat-msg">
+              <span className="author">System:</span>
+              Welcome to MM2Bet Global Chat! Be respectful.
             </div>
-          ))}
+          ) : (
+            messages.map((msg) => (
+              <div key={msg.id} className="chat-msg">
+                <span className="author">{msg.author}:</span>
+                {msg.text}
+                <span className="time">{timeAgo(msg.createdAt)}</span>
+              </div>
+            ))
+          )}
         </div>
+        {error ? <div className="auth-error">{error}</div> : null}
         <div className="chat-input-bar">
           <input
             type="text"
             className="chat-input"
-            placeholder="Type a message..."
+            placeholder={signedIn ? "Type a message..." : "Sign in to chat"}
             value={input}
+            disabled={!signedIn}
+            maxLength={300}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") send();
+              if (e.key === "Enter") void send();
             }}
           />
-          <button className="chat-send-btn" onClick={send}>
-            Send
+          <button className="chat-send-btn" disabled={!signedIn || busy} onClick={() => void send()}>
+            {busy ? "…" : "Send"}
           </button>
         </div>
       </div>
