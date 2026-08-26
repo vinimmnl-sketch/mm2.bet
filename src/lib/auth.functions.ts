@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeader, setResponseHeader } from "@tanstack/react-start/server";
+import { getRequestHeader, getRequestIP, setResponseHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 export type SessionMember = {
@@ -36,8 +36,17 @@ export const signOut = createServerFn({ method: "POST" }).handler(async () => {
 export const startRobloxChallenge = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ username: z.string().min(3).max(20) }).parse(input))
   .handler(async ({ data }) => {
-    const { lookupRobloxUser } = await import("./roblox.server");
+    const { lookupRobloxUser, getRobloxAvatar } = await import("./roblox.server");
     const { signPayload } = await import("./sign.server");
+    const { limitOrFail } = await import("./rate-limit.server");
+
+    const limited = await limitOrFail(
+      "roblox-start",
+      getRequestIP({ xForwardedFor: true }) ?? "unknown",
+      10,
+      60,
+    );
+    if (limited) return limited;
 
     const user = await lookupRobloxUser(data.username);
     if (!user) return { ok: false as const, error: "That Roblox username does not exist." };
@@ -53,7 +62,16 @@ export const startRobloxChallenge = createServerFn({ method: "POST" })
       exp: Date.now() + 15 * 60 * 1000,
     });
 
-    return { ok: true as const, code, challenge, robloxUsername: user.name };
+    const avatar = await getRobloxAvatar(String(user.id));
+
+    return {
+      ok: true as const,
+      code,
+      challenge,
+      robloxUsername: user.name,
+      robloxAvatar: avatar,
+      robloxId: String(user.id),
+    };
   });
 
 export const verifyRobloxChallenge = createServerFn({ method: "POST" })
