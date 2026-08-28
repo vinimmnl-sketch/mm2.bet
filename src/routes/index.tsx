@@ -1379,6 +1379,63 @@ function AdminView({ active }: { active: boolean }) {
       {error ? <div className="auth-error">{error}</div> : null}
       {notice ? <div className="auth-success">{notice}</div> : null}
 
+      <div className="wallet-section-header">Announcement</div>
+      <div className="data-card">
+        <input
+          className="auth-input"
+          value={annTitle}
+          placeholder="Announcement title"
+          onChange={(e) => setAnnTitle(e.target.value)}
+        />
+        <textarea
+          className="auth-input"
+          rows={3}
+          value={annBody}
+          placeholder="Message shown to every user"
+          onChange={(e) => setAnnBody(e.target.value)}
+        />
+        <button
+          className="btn-auth-submit"
+          disabled={busy || annTitle.trim().length < 2 || annBody.trim().length < 2}
+          onClick={() =>
+            void run(async () => {
+              const result = await publish({
+                data: { title: annTitle.trim(), body: annBody.trim() },
+              });
+              if (result.ok) {
+                setAnnTitle("");
+                setAnnBody("");
+              }
+              return result;
+            }, "Announcement published to all users.")
+          }
+        >
+          Publish Announcement
+        </button>
+        {announcements.length > 0 ? (
+          <div style={{ marginTop: 10 }}>
+            {announcements.map((a) => (
+              <div key={a.id} className="data-row">
+                <span className="data-name">{a.title}</span>
+                <span className="data-meta">{a.active ? "Live" : "Hidden"}</span>
+                {a.active ? (
+                  <button
+                    className="mini-btn ghost"
+                    disabled={busy}
+                    onClick={() => void run(() => hide({ data: { id: a.id } }), "Announcement hidden.")}
+                  >
+                    Hide
+                  </button>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="wallet-section-header">Players</div>
+
+
       <div className="data-card">
         <input
           className="auth-input"
