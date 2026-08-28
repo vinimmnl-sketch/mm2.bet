@@ -1338,15 +1338,27 @@ function AuthCard({
 function AdminView({ active }: { active: boolean }) {
   const search = useServerFn(adminSearchMembers);
   const grant = useServerFn(adminGrantTokens);
+  const publish = useServerFn(adminPublishAnnouncement);
+  const hide = useServerFn(adminHideAnnouncement);
+  const listAnnouncements = useServerFn(adminListAnnouncements);
   const { error, notice, busy, run } = useAction();
   const [query, setQuery] = useState("");
   const [amounts, setAmounts] = useState<Record<string, string>>({});
+  const [annTitle, setAnnTitle] = useState("");
+  const [annBody, setAnnBody] = useState("");
 
   const { data: members = [] } = useQuery({
     queryKey: ["admin-members", query],
     queryFn: () => search({ data: { query } }),
     enabled: active,
   });
+
+  const { data: announcements = [] } = useQuery({
+    queryKey: ["admin-announcements"],
+    queryFn: () => listAnnouncements(),
+    enabled: active,
+  });
+
 
   return (
     <div className={`view-content${active ? " active-view" : ""}`}>
