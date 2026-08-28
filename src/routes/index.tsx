@@ -329,6 +329,11 @@ function Index() {
       {/* ADMIN VIEW */}
       {isAdmin ? <AdminView active={view === "admin"} /> : null}
 
+      {/* Global announcement popup */}
+      <AnnouncementPopup />
+
+
+
 
 
       {/* Games Popup Menu */}
@@ -417,6 +422,43 @@ function Index() {
     </>
   );
 }
+
+function AnnouncementPopup() {
+  const fetchAnnouncement = useServerFn(getAnnouncement);
+  const [dismissed, setDismissed] = useState<string | null>(null);
+
+  const { data: announcement } = useQuery({
+    queryKey: ["announcement"],
+    queryFn: () => fetchAnnouncement(),
+    refetchInterval: 30000,
+  });
+
+  useEffect(() => {
+    setDismissed(localStorage.getItem("mm2bet_announcement_seen"));
+  }, []);
+
+  if (!announcement || dismissed === announcement.id) return null;
+
+  function close(id: string) {
+    localStorage.setItem("mm2bet_announcement_seen", id);
+    setDismissed(id);
+  }
+
+  return (
+    <div className="announce-overlay" onClick={() => close(announcement.id)}>
+      <div className="announce-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="announce-badge">📢 Announcement</div>
+        <h3>{announcement.title}</h3>
+        <p>{announcement.body}</p>
+        <button className="btn-auth-submit" onClick={() => close(announcement.id)}>
+          Got it
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
 
 function useAction() {
   const queryClient = useQueryClient();
@@ -667,21 +709,25 @@ function CoinflipView({
   const [spinning, setSpinning] = useState(false);
   const [coinResult, setCoinResult] = useState<"heads" | "tails" | null>(null);
 
-  async function animateFlip(
-    call: () => Promise<{ ok: boolean; error?: string; result?: string; won?: boolean }>,
-  ) {
+  type FlipOutcome = { ok: boolean; error?: string; result?: string; won?: boolean };
+
+  async function animateFlip(call: () => Promise<FlipOutcome>): Promise<FlipOutcome> {
     setCoinResult(null);
     setSpinning(true);
     const started = Date.now();
-    const outcome = await call().catch(() => ({ ok: false, error: "Something went wrong." }));
+    const outcome: FlipOutcome = await call().catch(() => ({
+      ok: false,
+      error: "Something went wrong.",
+    }));
     const wait = Math.max(0, 2600 - (Date.now() - started));
     await new Promise((r) => setTimeout(r, wait));
     setSpinning(false);
-    if (outcome.ok && "result" in outcome && outcome.result) {
+    if (outcome.ok && outcome.result) {
       setCoinResult(outcome.result as "heads" | "tails");
     }
     return outcome;
   }
+
 
 
   const { data: allFlips = [] } = useQuery({
@@ -1154,9 +1200,14 @@ function AuthCard({
   const verify = useServerFn(verifyRobloxChallenge);
 
   const [username, setUsername] = useState("");
-  const [challenge, setChallenge] = useState<{ code: string; token: string; name: string } | null>(
-    null,
-  );
+  const [challenge, setChallenge] = useState<{
+    code: string;
+    token: string;
+    name: string;
+    avatar: string | null;
+    robloxId: string;
+  } | null>(null);
+
   const [error, setError] = useState<string | null>(authError);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -1170,7 +1221,15 @@ function AuthCard({
     try {
       const result = await start({ data: { username: username.trim() } });
       if (!result.ok) setError(result.error);
-      else setChallenge({ code: result.code, token: result.challenge, name: result.robloxUsername });
+      else
+        setChallenge({
+          code: result.code,
+          token: result.challenge,
+          name: result.robloxUsername,
+          avatar: result.robloxAvatar ?? null,
+          robloxId: result.robloxId,
+        });
+
     } catch {
       setError("Could not reach Roblox. Please try again.");
     } finally {
@@ -1237,7 +1296,20 @@ function AuthCard({
         </>
       ) : (
         <>
+          <div className="roblox-preview">
+            {challenge.avatar ? (
+              <img src={challenge.avatar} alt={`${challenge.name} Roblox avatar`} />
+            ) : (
+              <div className="roblox-preview-fallback">?</div>
+            )}
+            <div className="roblox-preview-info">
+              <h4>{challenge.name}</h4>
+              <p>Roblox ID {challenge.robloxId}</p>
+              <span>Is this your account?</span>
+            </div>
+          </div>
           <p className="auth-hint">
+
             Verifying <strong>{challenge.name}</strong>. Paste this exact code into your Roblox
             profile description (About), save it, then verify. The code expires in 15 minutes.
           </p>
@@ -1266,15 +1338,27 @@ function AuthCard({
 function AdminView({ active }: { active: boolean }) {
   const search = useServerFn(adminSearchMembers);
   const grant = useServerFn(adminGrantTokens);
+  const publish = useServerFn(adminPublishAnnouncement);
+  const hide = useServerFn(adminHideAnnouncement);
+  const listAnnouncements = useServerFn(adminListAnnouncements);
   const { error, notice, busy, run } = useAction();
   const [query, setQuery] = useState("");
   const [amounts, setAmounts] = useState<Record<string, string>>({});
+  const [annTitle, setAnnTitle] = useState("");
+  const [annBody, setAnnBody] = useState("");
 
   const { data: members = [] } = useQuery({
     queryKey: ["admin-members", query],
     queryFn: () => search({ data: { query } }),
     enabled: active,
   });
+
+  const { data: announcements = [] } = useQuery({
+    queryKey: ["admin-announcements"],
+    queryFn: () => listAnnouncements(),
+    enabled: active,
+  });
+
 
   return (
     <div className={`view-content${active ? " active-view" : ""}`}>
@@ -1294,6 +1378,63 @@ function AdminView({ active }: { active: boolean }) {
 
       {error ? <div className="auth-error">{error}</div> : null}
       {notice ? <div className="auth-success">{notice}</div> : null}
+
+      <div className="wallet-section-header">Announcement</div>
+      <div className="data-card">
+        <input
+          className="auth-input"
+          value={annTitle}
+          placeholder="Announcement title"
+          onChange={(e) => setAnnTitle(e.target.value)}
+        />
+        <textarea
+          className="auth-input"
+          rows={3}
+          value={annBody}
+          placeholder="Message shown to every user"
+          onChange={(e) => setAnnBody(e.target.value)}
+        />
+        <button
+          className="btn-auth-submit"
+          disabled={busy || annTitle.trim().length < 2 || annBody.trim().length < 2}
+          onClick={() =>
+            void run(async () => {
+              const result = await publish({
+                data: { title: annTitle.trim(), body: annBody.trim() },
+              });
+              if (result.ok) {
+                setAnnTitle("");
+                setAnnBody("");
+              }
+              return result;
+            }, "Announcement published to all users.")
+          }
+        >
+          Publish Announcement
+        </button>
+        {announcements.length > 0 ? (
+          <div style={{ marginTop: 10 }}>
+            {announcements.map((a) => (
+              <div key={a.id} className="data-row">
+                <span className="data-name">{a.title}</span>
+                <span className="data-meta">{a.active ? "Live" : "Hidden"}</span>
+                {a.active ? (
+                  <button
+                    className="mini-btn ghost"
+                    disabled={busy}
+                    onClick={() => void run(() => hide({ data: { id: a.id } }), "Announcement hidden.")}
+                  >
+                    Hide
+                  </button>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="wallet-section-header">Players</div>
+
 
       <div className="data-card">
         <input

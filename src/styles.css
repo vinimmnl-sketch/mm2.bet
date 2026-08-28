@@ -205,3 +205,96 @@
 .admin-badge { background:#ef4444; color:#fff; font-size:10px; font-weight:800; padding:2px 6px; border-radius:6px; margin-left:6px; }
 .admin-grant-row { display:flex; gap:8px; align-items:center; margin-top:8px; }
 .admin-grant-row input { flex:1; background:#0b0c10; border:1px solid #282e42; color:#e5e7eb; border-radius:10px; padding:10px; font-size:13px; }
+
+/* ---- Roblox account preview ---- */
+.roblox-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #171b26;
+  border: 1px solid #232838;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.roblox-preview img,
+.roblox-preview-fallback {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: #0f1219;
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+  color: #6b7280;
+  font-weight: 700;
+}
+.roblox-preview-info h4 {
+  margin: 0;
+  font-size: 15px;
+  color: #e5e7eb;
+}
+.roblox-preview-info p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+.roblox-preview-info span {
+  font-size: 11px;
+  color: #f39c12;
+}
+
+/* ---- Announcement popup ---- */
+.announce-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 8, 12, 0.72);
+  backdrop-filter: blur(3px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  z-index: 2000;
+  animation: announce-fade 0.25s ease;
+}
+@keyframes announce-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.announce-modal {
+  width: 100%;
+  max-width: 360px;
+  background: #141824;
+  border: 1px solid #2a3040;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  animation: announce-pop 0.3s cubic-bezier(0.2, 1.2, 0.4, 1);
+}
+@keyframes announce-pop {
+  from { transform: translateY(14px) scale(0.96); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.announce-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #f39c12;
+  background: rgba(243, 156, 18, 0.12);
+  border-radius: 999px;
+  padding: 4px 10px;
+  margin-bottom: 10px;
+}
+.announce-modal h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: #f3f4f6;
+}
+.announce-modal p {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #9ca3af;
+  white-space: pre-wrap;
+}
