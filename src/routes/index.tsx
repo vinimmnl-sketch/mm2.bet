@@ -423,6 +423,43 @@ function Index() {
   );
 }
 
+function AnnouncementPopup() {
+  const fetchAnnouncement = useServerFn(getAnnouncement);
+  const [dismissed, setDismissed] = useState<string | null>(null);
+
+  const { data: announcement } = useQuery({
+    queryKey: ["announcement"],
+    queryFn: () => fetchAnnouncement(),
+    refetchInterval: 30000,
+  });
+
+  useEffect(() => {
+    setDismissed(localStorage.getItem("mm2bet_announcement_seen"));
+  }, []);
+
+  if (!announcement || dismissed === announcement.id) return null;
+
+  function close(id: string) {
+    localStorage.setItem("mm2bet_announcement_seen", id);
+    setDismissed(id);
+  }
+
+  return (
+    <div className="announce-overlay" onClick={() => close(announcement.id)}>
+      <div className="announce-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="announce-badge">📢 Announcement</div>
+        <h3>{announcement.title}</h3>
+        <p>{announcement.body}</p>
+        <button className="btn-auth-submit" onClick={() => close(announcement.id)}>
+          Got it
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
+
 function useAction() {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
