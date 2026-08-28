@@ -1158,9 +1158,14 @@ function AuthCard({
   const verify = useServerFn(verifyRobloxChallenge);
 
   const [username, setUsername] = useState("");
-  const [challenge, setChallenge] = useState<{ code: string; token: string; name: string } | null>(
-    null,
-  );
+  const [challenge, setChallenge] = useState<{
+    code: string;
+    token: string;
+    name: string;
+    avatar: string | null;
+    robloxId: string;
+  } | null>(null);
+
   const [error, setError] = useState<string | null>(authError);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
