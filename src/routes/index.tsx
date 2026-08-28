@@ -1179,7 +1179,15 @@ function AuthCard({
     try {
       const result = await start({ data: { username: username.trim() } });
       if (!result.ok) setError(result.error);
-      else setChallenge({ code: result.code, token: result.challenge, name: result.robloxUsername });
+      else
+        setChallenge({
+          code: result.code,
+          token: result.challenge,
+          name: result.robloxUsername,
+          avatar: result.robloxAvatar ?? null,
+          robloxId: result.robloxId,
+        });
+
     } catch {
       setError("Could not reach Roblox. Please try again.");
     } finally {
