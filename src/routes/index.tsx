@@ -329,6 +329,11 @@ function Index() {
       {/* ADMIN VIEW */}
       {isAdmin ? <AdminView active={view === "admin"} /> : null}
 
+      {/* Global announcement popup */}
+      <AnnouncementPopup />
+
+
+
 
 
       {/* Games Popup Menu */}
