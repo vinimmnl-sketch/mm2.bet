@@ -667,21 +667,25 @@ function CoinflipView({
   const [spinning, setSpinning] = useState(false);
   const [coinResult, setCoinResult] = useState<"heads" | "tails" | null>(null);
 
-  async function animateFlip(
-    call: () => Promise<{ ok: boolean; error?: string; result?: string; won?: boolean }>,
-  ) {
+  type FlipOutcome = { ok: boolean; error?: string; result?: string; won?: boolean };
+
+  async function animateFlip(call: () => Promise<FlipOutcome>): Promise<FlipOutcome> {
     setCoinResult(null);
     setSpinning(true);
     const started = Date.now();
-    const outcome = await call().catch(() => ({ ok: false, error: "Something went wrong." }));
+    const outcome: FlipOutcome = await call().catch(() => ({
+      ok: false,
+      error: "Something went wrong.",
+    }));
     const wait = Math.max(0, 2600 - (Date.now() - started));
     await new Promise((r) => setTimeout(r, wait));
     setSpinning(false);
-    if (outcome.ok && "result" in outcome && outcome.result) {
+    if (outcome.ok && outcome.result) {
       setCoinResult(outcome.result as "heads" | "tails");
     }
     return outcome;
   }
+
 
 
   const { data: allFlips = [] } = useQuery({
