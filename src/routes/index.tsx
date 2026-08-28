@@ -1254,7 +1254,20 @@ function AuthCard({
         </>
       ) : (
         <>
+          <div className="roblox-preview">
+            {challenge.avatar ? (
+              <img src={challenge.avatar} alt={`${challenge.name} Roblox avatar`} />
+            ) : (
+              <div className="roblox-preview-fallback">?</div>
+            )}
+            <div className="roblox-preview-info">
+              <h4>{challenge.name}</h4>
+              <p>Roblox ID {challenge.robloxId}</p>
+              <span>Is this your account?</span>
+            </div>
+          </div>
           <p className="auth-hint">
+
             Verifying <strong>{challenge.name}</strong>. Paste this exact code into your Roblox
             profile description (About), save it, then verify. The code expires in 15 minutes.
           </p>
