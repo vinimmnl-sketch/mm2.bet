@@ -145,6 +145,56 @@ export type Database = {
           },
         ]
       }
+      deposits: {
+        Row: {
+          created_at: string
+          credited: boolean
+          id: string
+          invoice_id: string | null
+          member_id: string
+          pay_currency: string | null
+          payment_id: string | null
+          price_amount: number
+          status: string
+          tokens: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          credited?: boolean
+          id?: string
+          invoice_id?: string | null
+          member_id: string
+          pay_currency?: string | null
+          payment_id?: string | null
+          price_amount: number
+          status?: string
+          tokens: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          credited?: boolean
+          id?: string
+          invoice_id?: string | null
+          member_id?: string
+          pay_currency?: string | null
+          payment_id?: string | null
+          price_amount?: number
+          status?: string
+          tokens?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposits_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jackpot_entries: {
         Row: {
           amount: number
@@ -339,6 +389,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "transactions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      withdrawals: {
+        Row: {
+          address: string
+          created_at: string
+          currency: string
+          id: string
+          member_id: string
+          note: string | null
+          payout_id: string | null
+          status: string
+          tokens: number
+          updated_at: string
+          usd_amount: number
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          currency: string
+          id?: string
+          member_id: string
+          note?: string | null
+          payout_id?: string | null
+          status?: string
+          tokens: number
+          updated_at?: string
+          usd_amount: number
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          member_id?: string
+          note?: string | null
+          payout_id?: string | null
+          status?: string
+          tokens?: number
+          updated_at?: string
+          usd_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawals_member_id_fkey"
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "members"
